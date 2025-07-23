@@ -1,1 +1,44 @@
-file:///C:/Users/monica.morin/OneDrive%20-%20EECD%20EDPE/T%C3%A9l%C3%A9chargements/big_digital_clock%20(11).html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Big Digital Clock</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Quicksand', sans-serif;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .clock {
+      font-size: 20vw;
+      font-weight: 500;
+      color: #333;
+      transition: font-size 0.2s ease, font-family 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock" id="clock"></div>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
