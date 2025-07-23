@@ -149,6 +149,15 @@
       outline: none;
       box-shadow: 0 0 6px #0078d7aa;
     }
+/* Hide scrollbar when inactive */
+body.hide-scrollbar::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+html, body {
+  overflow: hidden;
+}
   </style>
 
 </head>
@@ -498,17 +507,24 @@
       }
     });
 
-    // --- Hamburger hide/show after inactivity ---
-    let hideHamburgerTimeout;
-    function showHamburger() {
-      toggleControlsBtn.style.opacity = '1';
-      clearTimeout(hideHamburgerTimeout);
-      hideHamburgerTimeout = setTimeout(() => {
-        toggleControlsBtn.style.opacity = '0';
-      }, 3000);
+    // --- Hide hamburger and scrollbar after inactivity ---
+    let inactivityTimeout;
+
+    function handleInactivity() {
+      toggleControlsBtn.style.opacity = '0';
+      document.body.classList.add('hide-scrollbar');
     }
-    document.addEventListener('mousemove', showHamburger);
-    window.addEventListener('load', showHamburger);
+
+    function resetInactivityTimer() {
+      toggleControlsBtn.style.opacity = '1';
+      document.body.classList.remove('hide-scrollbar');
+
+      clearTimeout(inactivityTimeout);
+      inactivityTimeout = setTimeout(handleInactivity, 3000);
+}
+
+    document.addEventListener('mousemove', resetInactivityTimer);
+    window.addEventListener('load', resetInactivityTimer);
 
     // --- Ajout bouton No Background ---
     const noBgBtn = document.createElement('button');
@@ -523,11 +539,13 @@
 
     clearBGBtn.insertAdjacentElement('afterend', noBgBtn);
 
-    noBgBtn.addEventListener('click', () => {
-      body.style.backgroundColor = 'transparent';
-      if(bgColorPicker) bgColorPicker.value = '#ffffff';
-      localStorage.setItem('bgColor', 'transparent');
-    });
+   clearBGBtn.addEventListener('click', () => {
+  saveState();
+  body.style.backgroundColor = 'transparent';
+  document.documentElement.style.backgroundColor = 'transparent'; // <== this fixes the bug
+  bgColorPicker.value = '#ffffff';
+  localStorage.setItem('bgColor', 'transparent');
+});
 
     // --- Ajout picker couleur police ---
     const fontColorPicker = document.createElement('input');
