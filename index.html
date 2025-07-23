@@ -189,7 +189,7 @@
     </div>
   </div>
 
-  <button id="toggleControlsBtn" style="position:absolute; top:20px; left:20px; z-index:11; padding:6px 12px; font-weight:700; border-radius:8px; border:1px solid #bbb; background: rgba(255 255 255 / 0.95); cursor:pointer;">Toggle Controls</button>
+  <button id="toggleControlsBtn" aria-label="Afficher/cacher les contrôles" style="position:absolute; top:20px; left:20px; z-index:11; padding:6px 12px; font-weight:700; border-radius:8px; border:1px solid #bbb; background: rgba(255 255 255 / 0.95); cursor:pointer; font-size: 24px;">☰</button>
 
   <div class="clock" id="clock" style="font-size: 24vw;">9:27 PM</div>
 
@@ -262,7 +262,7 @@
 
     function rgbToHex(rgb) {
       if (!rgb) return null;
-      const result = /^rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)$/.exec(rgb);
+      const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
       return result
         ? '#' +
             [1, 2, 3]
