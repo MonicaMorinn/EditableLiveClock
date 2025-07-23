@@ -430,12 +430,12 @@ html, body {
       localStorage.setItem('bgColor', e.target.value);
     });
 
-    clearBGBtn.addEventListener('click', () => {
-      saveState();
-      body.style.backgroundColor = 'transparent';
-      bgColorPicker.value = '#ffffff';
-      localStorage.setItem('bgColor', 'transparent');
-    });
+clearBGBtn.addEventListener('click', () => {
+  saveState();
+  body.style.backgroundColor = 'transparent';
+  bgColorPicker.value = '';
+  localStorage.setItem('bgColor', 'transparent');
+});
 
     fontSizeRange.addEventListener('input', (e) => {
       saveState();
@@ -575,7 +575,10 @@ html, body {
       const savedSize = localStorage.getItem('fontSize');
       const savedFontColor = localStorage.getItem('fontColor');
 
-      if (savedBG) body.style.backgroundColor = savedBG;
+     if (savedBG !== null) {
+  body.style.backgroundColor = savedBG === 'transparent' ? 'transparent' : savedBG;
+  bgColorPicker.value = savedBG === 'transparent' ? '' : savedBG;
+}
       if (savedFont) {
         body.style.fontFamily = savedFont;
         if (fonts.includes(savedFont)) {
