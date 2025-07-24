@@ -18,15 +18,17 @@
       user-select: none;
       overflow-y: auto;
     }
-
+    body.hide-scrollbar {
+      overflow-y: hidden;
+    }
     .clock {
       font-size: 20vw;
       font-weight: 500;
       color: #333;
-      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.2s ease;
+      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
       user-select: none;
+      z-index: 5;
     }
-
     .controls {
       position: absolute;
       top: 20px;
@@ -42,12 +44,16 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.15);
       max-width: 480px;
       font-size: 1rem;
+      user-select: none;
+      transition: opacity 0.3s ease;
     }
-
+    .controls.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
     .controls label {
       font-weight: 600;
     }
-
     .controls input[type="color"],
     .controls input[type="range"],
     .controls select,
@@ -58,225 +64,152 @@
       border-radius: 6px;
       border: 1px solid #bbb;
       font-size: 1rem;
+      transition: border-color 0.15s ease;
       font-family: inherit;
     }
-
-    .undo-redo {
+    .controls button:hover,
+    .controls input:focus,
+    .controls select:focus {
+      border-color: #0078d7;
+      outline: none;
+      box-shadow: 0 0 5px #0078d7aa;
+    }
+    .autocomplete-list {
       position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 12px;
-      z-index: 10;
-    }
-
-    .undo-redo button {
-      background-color: rgba(255 255 255 / 0.95);
-      border: 1px solid #bbb;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
+      top: 40px;
+      left: 0;
+      right: 0;
+      max-height: 150px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      z-index: 20;
       font-size: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      user-select: none;
     }
-
-    #toggleControlsBtn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 11;
-      padding: 6px 12px;
-      font-weight: 700;
-      border-radius: 8px;
-      border: 1px solid #bbb;
-      background: rgba(255 255 255 / 0.95);
+    .autocomplete-item {
+      padding: 8px 12px;
       cursor: pointer;
-      font-size: 24px;
-      transition: opacity 0.5s ease;
+      transition: background-color 0.15s ease;
     }
-
-    /* === Scrollbar === */
-    body::-webkit-scrollbar {
-      width: 10px;
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+      background-color: #0078d7;
+      color: white;
     }
-    body::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    body::-webkit-scrollbar-thumb {
-      background-color: #888;
-      border-radius: 6px;
-    }
-    body.hide-ui::-webkit-scrollbar-thumb {
-      background-color: transparent;
-    }
-
-    body.hide-ui #toggleControlsBtn {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Saved color swatches */
-    #savedColors div {
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      cursor: pointer;
-      border: 1px solid #aaa;
+    .font-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body style="background-color: transparent; font-family: 'happy Titles';">
-  <button id="toggleControlsBtn">☰</button>
 
-  <div class="controls" id="controlsPanel" style="display: none;">
+  <div class="controls" id="controlsPanel">
     <label for="bgColorPicker">BG:</label>
     <input type="color" id="bgColorPicker" />
+    <button id="clearBGBtn">Clear BG</button>
 
-    <label for="fontColorPicker">Font:</label>
+    <label for="fontColorPicker">Font Color:</label>
     <input type="color" id="fontColorPicker" />
 
-    <button id="clearBGBtn">Clear BG</button>
-    <label>Saved Colors:</label>
-    <div id="savedColors" style="display:flex;gap:5px;"></div>
+    <div style="width: 100%;">
+      <label>Saved Colors (max 5):</label>
+      <div id="savedColors" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
+      <button id="saveCurrentColorBtn">Save Current Color</button>
+    </div>
 
     <label for="fontSizeRange">Size:</label>
     <input type="range" id="fontSizeRange" min="5" max="50" value="20" />
 
-    <label for="fontInput">Font:</label>
-    <input type="text" id="fontInput" placeholder="e.g., Arial or Custom" />
+    <label for="fontSelect">Font:</label>
+    <select id="fontSelect">
+      <option value="sans-serif">Sans Serif</option>
+      <option value="Quicksand">Quicksand</option>
+      <option value="Arial">Arial</option>
+      <option value="Comic Sans MS">Comic Sans MS</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Verdana">Verdana</option>
+    </select>
+
+    <div class="font-panel">
+      <label for="fontInput">Search Font:</label>
+      <input type="text" id="fontInput" placeholder="Type font name" />
+      <div id="autocompleteList" class="autocomplete-list" style="display: none;"></div>
+
+      <label for="addFontInput">Add Font:</label>
+      <input type="text" id="addFontInput" />
+      <button id="addFontBtn">Add Font</button>
+    </div>
+
+    <button id="savePageSettingsBtn">Save Settings for This Page</button>
+
+    <!-- New toggles -->
+    <div style="width: 100%; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <label for="toggleScrollbar" style="font-weight: 600; cursor: pointer;">
+        <input type="checkbox" id="toggleScrollbar" />
+        Hide Scrollbar
+      </label>
+
+      <label for="toggleAutoHide" style="font-weight: 600; cursor: pointer;">
+        <input type="checkbox" id="toggleAutoHide" />
+        Auto-hide Controls
+      </label>
+
+      <button id="toggleNoBackgroundBtn" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #bbb; cursor: pointer; font-family: inherit;">
+        Toggle No Background Mode
+      </button>
+    </div>
   </div>
 
-  <div class="clock" id="clock">00:00</div>
-
-  <div class="undo-redo" id="undoRedoPanel" style="display: none;">
-    <button id="undoBtn">Undo</button>
-    <button id="redoBtn">Redo</button>
-  </div>
+  <div class="clock" id="clock" style="font-size: 24vw;">--:--</div>
 
   <script>
     const clock = document.getElementById('clock');
     const bgColorPicker = document.getElementById('bgColorPicker');
     const fontColorPicker = document.getElementById('fontColorPicker');
     const fontSizeRange = document.getElementById('fontSizeRange');
+    const fontSelect = document.getElementById('fontSelect');
     const fontInput = document.getElementById('fontInput');
+    const addFontInput = document.getElementById('addFontInput');
+    const addFontBtn = document.getElementById('addFontBtn');
     const clearBGBtn = document.getElementById('clearBGBtn');
-    const toggleBtn = document.getElementById('toggleControlsBtn');
+    const savePageSettingsBtn = document.getElementById('savePageSettingsBtn');
+    const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
+    const savedColorsDiv = document.getElementById('savedColors');
+    const autocompleteList = document.getElementById('autocompleteList');
+    const body = document.body;
     const controlsPanel = document.getElementById('controlsPanel');
-    const undoRedoPanel = document.getElementById('undoRedoPanel');
-    const savedColorsContainer = document.getElementById('savedColors');
 
+    const toggleScrollbar = document.getElementById('toggleScrollbar');
+    const toggleAutoHide = document.getElementById('toggleAutoHide');
+    const toggleNoBackgroundBtn = document.getElementById('toggleNoBackgroundBtn');
+
+    // CLOCK
     function updateClock() {
       const now = new Date();
-      let h = now.getHours();
-      const m = now.getMinutes().toString().padStart(2, '0');
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
-      clock.textContent = `${h}:${m} ${ampm}`;
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      clock.textContent = `${hours}:${minutes} ${ampm}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // UI hide/show on mouse move
-    let hideTimeout;
-    function resetHideTimer() {
-      document.body.classList.remove('hide-ui');
-      clearTimeout(hideTimeout);
-      hideTimeout = setTimeout(() => {
-        document.body.classList.add('hide-ui');
-      }, 3000);
-    }
-    document.addEventListener('mousemove', resetHideTimer);
-    resetHideTimer();
-
-    // Undo/Redo stack
-    let history = [], redo = [];
-    function saveState() {
-      history.push({
-        bg: document.body.style.backgroundColor,
-        font: document.body.style.fontFamily,
-        size: clock.style.fontSize,
-        color: clock.style.color
-      });
-      redo = [];
-    }
-
-    function restoreState(state) {
-      if (!state) return;
-      document.body.style.backgroundColor = state.bg;
-      document.body.style.fontFamily = state.font;
-      clock.style.fontSize = state.size;
-      clock.style.color = state.color;
-      bgColorPicker.value = toHex(state.bg);
-      fontColorPicker.value = toHex(state.color);
-      fontInput.value = state.font;
-    }
-
-    document.getElementById('undoBtn').onclick = () => {
-      const state = history.pop();
-      if (state) {
-        redo.push(getCurrentState());
-        restoreState(state);
-      }
-    };
-
-    document.getElementById('redoBtn').onclick = () => {
-      const state = redo.pop();
-      if (state) {
-        saveState();
-        restoreState(state);
-      }
-    };
-
-    function getCurrentState() {
-      return {
-        bg: document.body.style.backgroundColor,
-        font: document.body.style.fontFamily,
-        size: clock.style.fontSize,
-        color: clock.style.color
-      };
-    }
-
-    toggleBtn.onclick = () => {
-      const isVisible = controlsPanel.style.display === 'flex';
-      controlsPanel.style.display = isVisible ? 'none' : 'flex';
-      undoRedoPanel.style.display = isVisible ? 'none' : 'flex';
-    };
-
-    bgColorPicker.oninput = (e) => {
-      saveState();
-      document.body.style.backgroundColor = e.target.value;
-      addSavedColor(e.target.value);
-      savePageSettings();
-    };
-
-    fontColorPicker.oninput = (e) => {
-      saveState();
-      clock.style.color = e.target.value;
-      savePageSettings();
-    };
-
-    fontSizeRange.oninput = (e) => {
-      saveState();
-      clock.style.fontSize = e.target.value + 'vw';
-      savePageSettings();
-    };
-
-    fontInput.oninput = (e) => {
-      saveState();
-      document.body.style.fontFamily = e.target.value;
-      savePageSettings();
-    };
-
-    clearBGBtn.onclick = () => {
-      saveState();
-      document.body.style.backgroundColor = 'transparent';
-      savePageSettings();
-    };
-
+    // SAVED COLORS
     function addSavedColor(color) {
-      const saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
       if (!saved.includes(color)) {
+        if (saved.length >= 5) saved.shift();
         saved.push(color);
         localStorage.setItem('savedColors', JSON.stringify(saved));
         renderSavedColors();
@@ -284,38 +217,241 @@
     }
 
     function renderSavedColors() {
-      const saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
-      savedColorsContainer.innerHTML = '';
-      saved.forEach(color => {
-        const box = document.createElement('div');
-        box.style.backgroundColor = color;
-        box.onclick = () => {
-          saveState();
-          document.body.style.backgroundColor = color;
+      const savedColors = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      savedColorsDiv.innerHTML = '';
+      savedColors.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.style.width = '24px';
+        swatch.style.height = '24px';
+        swatch.style.borderRadius = '4px';
+        swatch.style.backgroundColor = color;
+        swatch.style.cursor = 'pointer';
+        swatch.title = color;
+        swatch.addEventListener('click', () => {
+          body.style.backgroundColor = color;
           bgColorPicker.value = color;
           savePageSettings();
-        };
-        savedColorsContainer.appendChild(box);
+        });
+        savedColorsDiv.appendChild(swatch);
       });
     }
 
-    function toHex(rgb) {
-      const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-      return result ? "#" + result.slice(1).map(x => (+x).toString(16).padStart(2, '0')).join('') : rgb;
+    saveCurrentColorBtn.addEventListener('click', () => {
+      addSavedColor(bgColorPicker.value);
+    });
+
+    // FONT + AUTOCOMPLETE
+    let fonts = Array.from(fontSelect.options).map(opt => opt.value);
+    const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+    fonts = fonts.concat(savedCustomFonts);
+
+    function updateFont(font) {
+      body.style.fontFamily = font;
+      savePageSettings();
     }
 
+    fontSelect.addEventListener('change', e => {
+      const font = e.target.value;
+      fontInput.value = '';
+      updateFont(font);
+    });
+
+    function filterFonts(query) {
+      return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
+    }
+
+    function showAutocomplete(matches) {
+      autocompleteList.innerHTML = '';
+      matches.forEach(match => {
+        const item = document.createElement('div');
+        item.textContent = match;
+        item.className = 'autocomplete-item';
+        item.addEventListener('mousedown', () => {
+          fontInput.value = match;
+          updateFont(match);
+          autocompleteList.style.display = 'none';
+        });
+        autocompleteList.appendChild(item);
+      });
+      autocompleteList.style.display = matches.length ? 'block' : 'none';
+    }
+
+    fontInput.addEventListener('input', e => {
+      const val = e.target.value;
+      const matches = filterFonts(val);
+      showAutocomplete(matches);
+      updateFont(val);
+    });
+
+    fontInput.addEventListener('blur', () => {
+      setTimeout(() => (autocompleteList.style.display = 'none'), 200);
+    });
+
+    addFontBtn.addEventListener('click', () => {
+      const newFont = fontInput.value.trim() || addFontInput.value.trim();
+      if (!newFont) return alert('Enter a font name to add.');
+      if (!fonts.includes(newFont)) {
+        fonts.push(newFont);
+        const option = document.createElement('option');
+        option.value = newFont;
+        option.textContent = newFont;
+        fontSelect.appendChild(option);
+        const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+        if (!customFonts.includes(newFont)) {
+          customFonts.push(newFont);
+          localStorage.setItem('customFonts', JSON.stringify(customFonts));
+        }
+        alert(`Added "${newFont}" to font list!`);
+        addFontInput.value = '';
+      } else {
+        alert(`"${newFont}" is already in the font list.`);
+      }
+    });
+
+    // SETTINGS SAVE/LOAD
     function savePageSettings() {
-      const key = location.pathname;
-      const state = getCurrentState();
-      localStorage.setItem('clockSettings-' + key, JSON.stringify(state));
+      const pageKey = location.pathname;
+      const settings = {
+        bgColor: body.style.backgroundColor,
+        fontFamily: body.style.fontFamily,
+        fontSize: clock.style.fontSize,
+        fontColor: clock.style.color,
+        hideScrollbar: toggleScrollbar.checked,
+        autoHideControls: toggleAutoHide.checked,
+        noBackgroundMode: body.classList.contains('no-background')
+      };
+      localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
     }
 
     function loadPageSettings() {
-      const key = location.pathname;
-      const settings = JSON.parse(localStorage.getItem('clockSettings-' + key));
-      if (settings) restoreState(settings);
+      const pageKey = location.pathname;
+      const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
+      if (settings) {
+        body.style.backgroundColor = settings.bgColor || 'transparent';
+        body.style.fontFamily = settings.fontFamily || 'sans-serif';
+        clock.style.fontSize = settings.fontSize || '20vw';
+        clock.style.color = settings.fontColor || '#333';
+        if (bgColorPicker) bgColorPicker.value = settings.bgColor || '#ffffff';
+        if (fontColorPicker) fontColorPicker.value = settings.fontColor || '#333';
+
+        if (settings.hideScrollbar) {
+          toggleScrollbar.checked = true;
+          body.classList.add('hide-scrollbar');
+        } else {
+          toggleScrollbar.checked = false;
+          body.classList.remove('hide-scrollbar');
+        }
+
+        if (settings.autoHideControls) {
+          toggleAutoHide.checked = true;
+          enableAutoHideControls();
+        } else {
+          toggleAutoHide.checked = false;
+          disableAutoHideControls();
+        }
+
+        if (settings.noBackgroundMode) {
+          body.classList.add('no-background');
+          applyNoBackgroundMode(true);
+        } else {
+          body.classList.remove('no-background');
+          applyNoBackgroundMode(false);
+        }
+      }
     }
 
+    savePageSettingsBtn.addEventListener('click', () => {
+      savePageSettings();
+      alert('Saved settings for this page!');
+    });
+
+    // OTHER EVENTS
+    bgColorPicker.addEventListener('input', e => {
+      body.style.backgroundColor = e.target.value;
+      savePageSettings();
+    });
+
+    fontColorPicker.addEventListener('input', e => {
+      clock.style.color = e.target.value;
+      savePageSettings();
+    });
+
+    fontSizeRange.addEventListener('input', e => {
+      clock.style.fontSize = e.target.value + 'vw';
+      savePageSettings();
+    });
+
+    clearBGBtn.addEventListener('click', () => {
+      body.style.backgroundColor = 'transparent';
+      bgColorPicker.value = '#ffffff';
+      savePageSettings();
+    });
+
+    toggleScrollbar.addEventListener('change', () => {
+      if (toggleScrollbar.checked) {
+        body.classList.add('hide-scrollbar');
+      } else {
+        body.classList.remove('hide-scrollbar');
+      }
+      savePageSettings();
+    });
+
+    // AUTO-HIDE CONTROLS LOGIC
+    let autoHideTimeout;
+    function hideControls() {
+      controlsPanel.classList.add('hidden');
+    }
+    function showControls() {
+      controlsPanel.classList.remove('hidden');
+    }
+    function resetAutoHideTimer() {
+      showControls();
+      clearTimeout(autoHideTimeout);
+      autoHideTimeout = setTimeout(() => {
+        hideControls();
+      }, 3000);
+    }
+    function enableAutoHideControls() {
+      resetAutoHideTimer();
+      window.addEventListener('mousemove', resetAutoHideTimer);
+    }
+    function disableAutoHideControls() {
+      clearTimeout(autoHideTimeout);
+      showControls();
+      window.removeEventListener('mousemove', resetAutoHideTimer);
+    }
+    toggleAutoHide.addEventListener('change', () => {
+      if (toggleAutoHide.checked) {
+        enableAutoHideControls();
+      } else {
+        disableAutoHideControls();
+      }
+      savePageSettings();
+    });
+
+    // NO BACKGROUND MODE
+    function applyNoBackgroundMode(enabled) {
+      if (enabled) {
+        controlsPanel.style.display = 'none';
+        body.style.backgroundColor = 'transparent';
+        body.classList.add('hide-scrollbar');
+      } else {
+        controlsPanel.style.display = 'flex';
+        // Restore background color from picker if not transparent
+        body.style.backgroundColor = bgColorPicker.value || 'transparent';
+        if (!toggleScrollbar.checked) {
+          body.classList.remove('hide-scrollbar');
+        }
+      }
+    }
+
+    toggleNoBackgroundBtn.addEventListener('click', () => {
+      const enabled = body.classList.toggle('no-background');
+      applyNoBackgroundMode(enabled);
+      savePageSettings();
+    });
+
+    // INIT
     loadPageSettings();
     renderSavedColors();
   </script>
