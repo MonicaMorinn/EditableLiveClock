@@ -18,7 +18,12 @@
       user-select: none;
       overflow-y: auto;
     }
-    body.hide-scrollbar {
+    /* Permanent scrollbar hide */
+    body.hide-scrollbar-perm {
+      overflow-y: hidden !important;
+    }
+    /* Temporary scrollbar hide for auto-hide */
+    body.hide-scrollbar-temp {
       overflow-y: hidden;
     }
     .clock {
@@ -107,9 +112,42 @@
       align-items: center;
       margin-top: 10px;
     }
+
+    /* Hamburger lines container */
+    #hamburgerLines {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 30px;
+      height: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      z-index: 20;
+      user-select: none;
+      transition: opacity 0.3s ease;
+      opacity: 1;
+    }
+    #hamburgerLines.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .line {
+      height: 4px;
+      background-color: #0078d7;
+      border-radius: 2px;
+    }
   </style>
 </head>
 <body style="background-color: transparent; font-family: 'happy Titles';">
+
+  <!-- Hamburger lines -->
+  <div id="hamburgerLines" title="Menu">
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+  </div>
 
   <div class="controls" id="controlsPanel">
     <label for="bgColorPicker">BG:</label>
@@ -152,16 +190,15 @@
 
     <button id="savePageSettingsBtn">Save Settings for This Page</button>
 
-    <!-- Keep toggle scrollbar and auto-hide controls -->
     <div style="width: 100%; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
       <label for="toggleScrollbar" style="font-weight: 600; cursor: pointer;">
         <input type="checkbox" id="toggleScrollbar" />
-        Hide Scrollbar
+        Hide Scrollbar Permanently
       </label>
 
       <label for="toggleAutoHide" style="font-weight: 600; cursor: pointer;">
         <input type="checkbox" id="toggleAutoHide" />
-        Auto-hide Controls
+        Auto-hide Controls & Burger
       </label>
     </div>
   </div>
@@ -184,6 +221,7 @@
     const autocompleteList = document.getElementById('autocompleteList');
     const body = document.body;
     const controlsPanel = document.getElementById('controlsPanel');
+    const hamburgerLines = document.getElementById('hamburgerLines');
 
     const toggleScrollbar = document.getElementById('toggleScrollbar');
     const toggleAutoHide = document.getElementById('toggleAutoHide');
@@ -311,7 +349,7 @@
         fontFamily: body.style.fontFamily,
         fontSize: clock.style.fontSize,
         fontColor: clock.style.color,
-        hideScrollbar: toggleScrollbar.checked,
+        hideScrollbarPerm: toggleScrollbar.checked,
         autoHideControls: toggleAutoHide.checked,
         savedColors: JSON.parse(localStorage.getItem('savedColors') || '[]')
       };
@@ -329,12 +367,12 @@
         if (bgColorPicker) bgColorPicker.value = settings.bgColor || '#ffffff';
         if (fontColorPicker) fontColorPicker.value = settings.fontColor || '#333';
 
-        if (settings.hideScrollbar) {
+        if (settings.hideScrollbarPerm) {
           toggleScrollbar.checked = true;
-          body.classList.add('hide-scrollbar');
+          body.classList.add('hide-scrollbar-perm');
         } else {
           toggleScrollbar.checked = false;
-          body.classList.remove('hide-scrollbar');
+          body.classList.remove('hide-scrollbar-perm');
         }
 
         if (settings.autoHideControls) {
@@ -385,9 +423,9 @@
 
     toggleScrollbar.addEventListener('change', () => {
       if (toggleScrollbar.checked) {
-        body.classList.add('hide-scrollbar');
+        body.classList.add('hide-scrollbar-perm');
       } else {
-        body.classList.remove('hide-scrollbar');
+        body.classList.remove('hide-scrollbar-perm');
       }
       savePageSettings();
     });
@@ -396,9 +434,16 @@
     let autoHideTimeout;
     function hideControls() {
       controlsPanel.classList.add('hidden');
+      hamburgerLines.classList.add('hidden');
+      // Only hide scrollbar if permanent hide is NOT checked
+      if (!toggleScrollbar.checked) {
+        body.classList.add('hide-scrollbar-temp');
+      }
     }
     function showControls() {
       controlsPanel.classList.remove('hidden');
+      hamburgerLines.classList.remove('hidden');
+      body.classList.remove('hide-scrollbar-temp');
     }
     function resetAutoHideTimer() {
       showControls();
