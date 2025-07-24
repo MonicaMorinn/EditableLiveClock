@@ -340,6 +340,31 @@
         clearAutocomplete();
       }
     });
+      function savePageSettings() {
+  const pageKey = location.pathname;
+  const settings = {
+    bg: body.style.backgroundColor,
+    font: body.style.fontFamily,
+    fontSize: clock.style.fontSize,
+    fontColor: clock.style.color
+  };
+  localStorage.setItem('clockSettings-' + pageKey, JSON.stringify(settings));
+}
+
+function loadPageSettings() {
+  const pageKey = location.pathname;
+  const settings = JSON.parse(localStorage.getItem('clockSettings-' + pageKey));
+  if (settings) {
+    body.style.backgroundColor = settings.bg;
+    body.style.fontFamily = settings.font;
+    clock.style.fontSize = settings.fontSize;
+    clock.style.color = settings.fontColor;
+
+    bgColorPicker.value = settings.bg || '';
+    fontColorPicker.value = settings.fontColor || '#333';
+    fontSizeRange.value = parseFloat(settings.fontSize);
+  }
+}
 
     window.addEventListener('DOMContentLoaded', () => {
       const savedBG = localStorage.getItem('bgColor');
@@ -363,6 +388,21 @@
       // Start with font input panel hidden
       fontPanel.style.display = 'none';
     });
+      /* Hide burger and scrollbar thumb when inactive */
+body.hide-ui #toggleControlsBtn {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #888;
+  transition: background-color 0.3s ease;
+}
+body.hide-ui::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
   </script>
 
 
