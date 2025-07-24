@@ -37,6 +37,11 @@
       z-index: 10;
     }
     .undo-redo button { /* ... */ }
+    .hide-hamburger {
+  opacity: 0 !important;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
   </style>
 </head>
 <body style="background-color: transparent; font-family: 'happy Titles';">
@@ -403,6 +408,25 @@
 
       saveState(); // initial save for undo stack
     });
+    // Auto-hide hamburger after 3 seconds of inactivity
+let hideTimeout;
+
+function hideHamburger() {
+  toggleControlsBtn.classList.add('hide-hamburger');
+}
+
+function showHamburger() {
+  toggleControlsBtn.classList.remove('hide-hamburger');
+}
+
+function resetHamburgerTimer() {
+  showHamburger();
+  clearTimeout(hideTimeout);
+  hideTimeout = setTimeout(hideHamburger, 3000);
+}
+
+document.addEventListener('mousemove', resetHamburgerTimer);
+window.addEventListener('load', resetHamburgerTimer);
   </script>
 </body>
 </html>
