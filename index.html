@@ -2,193 +2,263 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Big Digital Clock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editable Clock</title>
   <style>
     body {
       margin: 0;
-      height: 100vh;
-      background-color: transparent;
+      font-family: sans-serif;
+      background-color: white;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      font-family: 'happy Titles', sans-serif;
-      transition: background-color 0.3s ease;
-      user-select: none;
-      overflow-y: auto;
+      justify-content: center;
+      height: 100vh;
+      transition: background-color 0.3s;
     }
+
     .clock {
-      font-size: 20vw;
-      font-weight: 500;
-      color: #333;
-      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
-      user-select: none;
+      font-size: 24vw;
+      color: black;
+      transition: all 0.3s ease;
     }
+
+    .controls {
+      position: fixed;
+      top: 60px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px;
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
+    }
+
     .undo-redo {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
-      right: 20px;
-      display: flex;
-      gap: 12px;
-      user-select: none;
-      z-index: 10;
+      left: 20px;
+      display: none;
+      gap: 10px;
+      z-index: 100;
     }
-    .hide-hamburger {
-      opacity: 0 !important;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
+
+    #toggleControlsBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      padding: 6px 10px;
+      font-weight: 700;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: opacity 0.3s;
     }
 
     body::-webkit-scrollbar {
       width: 12px;
     }
-    body::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
+
     body::-webkit-scrollbar-thumb {
-      background-color: #888;
+      background: #888;
       border-radius: 6px;
       border: 3px solid #f1f1f1;
-      transition: background-color 0.3s ease;
     }
+
     body.hide-ui::-webkit-scrollbar-thumb {
-      background-color: transparent;
+      background: transparent;
       pointer-events: none;
     }
 
     body.hide-ui #toggleControlsBtn {
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.5s ease;
-    }
-    body.menu-open {
-      overflow: auto !important;
     }
 
-    @media (max-width: 600px) {
-      .clock {
-        font-size: 28vw !important;
-      }
-      #toggleControlsBtn {
-        font-size: 16px;
-        padding: 4px 8px;
-      }
+    #fontSelect option {
+      font-size: 16px;
+    }
+
+    #fontSelect {
+      font-family: sans-serif;
     }
   </style>
 </head>
 <body>
+  <button id="toggleControlsBtn">☰</button>
 
-  <button id="toggleControlsBtn" aria-label="Toggle Controls" style="
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-    font-size: 18px;
-    padding: 6px 10px;
-    font-weight: 700;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    background: rgba(255, 255, 255, 0.85);
-    cursor: pointer;
-    opacity: 1;
-    transition: opacity 0.3s;
-    user-select: none;
-  ">☰</button>
+  <div class="controls" id="controlsPanel">
+    <label>Background color:
+      <input type="color" id="bgColorPicker" />
+    </label>
 
-  <div class="controls" id="controlsPanel" style="display: none;">
-    <label for="bgColorPicker">BG:</label>
-    <input type="color" id="bgColorPicker" title="Pick background color" />
-    <label for="fontColorPicker">Font Color:</label>
-    <input type="color" id="fontColorPicker" title="Pick font color" />
-    <button id="clearBGBtn" title="Clear background (transparent)">Clear BG</button>
-    <button id="savePageSettingsBtn" title="Save settings for this page" style="margin-left: 10px; padding: 5px 10px; border-radius: 6px; border: 1px solid #bbb; cursor: pointer;">
-      Save Settings for This Page
-    </button>
+    <label>Font color:
+      <input type="color" id="fontColorPicker" />
+    </label>
 
-    <label for="fontSizeRange">Size:</label>
-    <input type="range" id="fontSizeRange" min="5" max="50" value="20" title="Font size" />
+    <label>Font:
+      <select id="fontSelect">
+        <option value="Arial" style="font-family: Arial;">Arial</option>
+        <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+        <option value="Georgia" style="font-family: Georgia;">Georgia</option>
+        <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
+        <option value="Comic Sans MS" style="font-family: 'Comic Sans MS';">Comic Sans MS</option>
+        <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
+        <option value="Trebuchet MS" style="font-family: 'Trebuchet MS';">Trebuchet MS</option>
+      </select>
+    </label>
 
-    <label for="fontSelect">Font:</label>
-    <select id="fontSelect" title="Choose a font" style="flex: 1 1 150px;">
-      <option value="sans-serif">Sans Serif</option>
-      <option value="Quicksand">Quicksand</option>
-      <option value="Arial">Arial</option>
-      <option value="Comic Sans MS">Comic Sans MS</option>
-      <option value="Georgia">Georgia</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Times New Roman">Times New Roman</option>
-      <option value="Verdana">Verdana</option>
-    </select>
+    <label>Font size:
+      <input type="range" id="fontSizeRange" min="5" max="50" value="24">
+    </label>
 
-    <button id="toggleFontPanelBtn" title="Show/Hide font input panel">Toggle Font Input</button>
-
-    <div class="font-panel" id="fontPanel" style="flex-wrap: wrap; display: none;">
-      <label for="fontInput">Or type font:</label>
-      <div class="font-input-wrapper">
-        <input type="text" id="fontInput" placeholder="Type your font name" title="Enter a font installed on your device" autocomplete="off" />
-        <div id="autocompleteList" class="autocomplete-list" style="display:none;"></div>
-      </div>
-
-      <div class="add-font-wrapper">
-        <input type="text" id="addFontInput" placeholder="Add font to list" title="Add custom font name to suggestions" />
-        <button id="addFontBtn" title="Add font">Add</button>
-      </div>
-    </div>
+    <button id="clearBGBtn">Clear Background</button>
+    <button id="savePageSettingsBtn">Save for this page</button>
   </div>
 
-  <div class="clock" id="clock">--:-- --</div>
+  <div class="clock" id="clock"></div>
 
-  <div class="undo-redo" id="undoRedoPanel" style="display: none;">
+  <div class="undo-redo" id="undoRedoPanel">
     <button id="undoBtn">Undo</button>
     <button id="redoBtn">Redo</button>
   </div>
 
   <script>
+    const clock = document.getElementById("clock");
+    const bgColorPicker = document.getElementById("bgColorPicker");
+    const fontColorPicker = document.getElementById("fontColorPicker");
+    const fontSelect = document.getElementById("fontSelect");
+    const fontSizeRange = document.getElementById("fontSizeRange");
+    const clearBGBtn = document.getElementById("clearBGBtn");
+    const savePageSettingsBtn = document.getElementById("savePageSettingsBtn");
+
+    const stateHistory = [];
+    let redoHistory = [];
+
+    function saveState() {
+      stateHistory.push({
+        bg: document.body.style.backgroundColor,
+        color: clock.style.color,
+        font: clock.style.fontFamily,
+        size: clock.style.fontSize,
+      });
+      if (stateHistory.length > 50) stateHistory.shift();
+      redoHistory = [];
+    }
+
+    function restoreState(state) {
+      document.body.style.backgroundColor = state.bg;
+      clock.style.color = state.color;
+      clock.style.fontFamily = state.font;
+      clock.style.fontSize = state.size;
+    }
+
+    document.getElementById("undoBtn").onclick = () => {
+      if (stateHistory.length > 1) {
+        const last = stateHistory.pop();
+        redoHistory.push({
+          bg: document.body.style.backgroundColor,
+          color: clock.style.color,
+          font: clock.style.fontFamily,
+          size: clock.style.fontSize,
+        });
+        restoreState(stateHistory[stateHistory.length - 1]);
+      }
+    };
+
+    document.getElementById("redoBtn").onclick = () => {
+      if (redoHistory.length) {
+        const state = redoHistory.pop();
+        saveState();
+        restoreState(state);
+      }
+    };
+
     function updateClock() {
       const now = new Date();
-      let hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
+      let h = now.getHours();
+      let m = now.getMinutes().toString().padStart(2, '0');
+      let suffix = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      clock.textContent = `${h}:${m} ${suffix}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
-    <script>
-  function updateClock() {
-    ...
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-    <script>
-  function updateClock() {
-    const now = new Date();
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
 
-  // Toggle the controls panel when hamburger button is clicked
-  const toggleButton = document.getElementById('toggleControlsBtn');
-  const controlsPanel = document.getElementById('controlsPanel');
+    bgColorPicker.addEventListener("input", () => {
+      saveState();
+      document.body.style.backgroundColor = bgColorPicker.value;
+    });
 
-  toggleButton.addEventListener('click', () => {
-    if (controlsPanel.style.display === 'none' || controlsPanel.style.display === '') {
-      controlsPanel.style.display = 'block';
-    } else {
-      controlsPanel.style.display = 'none';
+    fontColorPicker.addEventListener("input", () => {
+      saveState();
+      clock.style.color = fontColorPicker.value;
+    });
+
+    fontSelect.addEventListener("change", () => {
+      saveState();
+      clock.style.fontFamily = fontSelect.value;
+    });
+
+    fontSizeRange.addEventListener("input", () => {
+      saveState();
+      clock.style.fontSize = fontSizeRange.value + "vw";
+    });
+
+    clearBGBtn.onclick = () => {
+      saveState();
+      document.body.style.backgroundColor = "white";
+    };
+
+    savePageSettingsBtn.onclick = () => {
+      const state = {
+        bg: document.body.style.backgroundColor,
+        color: clock.style.color,
+        font: clock.style.fontFamily,
+        size: clock.style.fontSize
+      };
+      localStorage.setItem("clockPageSettings", JSON.stringify(state));
+    };
+
+    function loadSettings() {
+      const saved = localStorage.getItem("clockPageSettings");
+      if (!saved) return;
+      const state = JSON.parse(saved);
+      restoreState(state);
     }
-  });
-</script>
 
-</script>
+    loadSettings();
+    saveState();
 
+    // ☰ Toggle button
+    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
+    const controlsPanel = document.getElementById("controlsPanel");
+    const undoRedoPanel = document.getElementById("undoRedoPanel");
+
+    toggleControlsBtn.addEventListener("click", () => {
+      const isVisible = controlsPanel.style.display === "flex";
+      controlsPanel.style.display = isVisible ? "none" : "flex";
+      undoRedoPanel.style.display = isVisible ? "none" : "flex";
+      resetUI();
+    });
+
+    // Auto-hide UI
+    let uiTimer;
+    function resetUI() {
+      document.body.classList.remove("hide-ui");
+      clearTimeout(uiTimer);
+      uiTimer = setTimeout(() => {
+        document.body.classList.add("hide-ui");
+      }, 3000);
+    }
+
+    document.addEventListener("mousemove", resetUI);
+    resetUI();
   </script>
-
 </body>
 </html>
