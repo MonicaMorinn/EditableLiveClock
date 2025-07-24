@@ -16,6 +16,7 @@
       font-family: sans-serif;
       transition: background-color 0.3s ease;
       user-select: none;
+      overflow-y: auto;
     }
     .clock {
       font-size: 20vw;
@@ -24,137 +25,70 @@
       transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
       user-select: none;
     }
-    .controls {
-      position: fixed;
-      top: 50px;
-      left: 10px;
-      background: rgba(255 255 255 / 0.85);
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      z-index: 999;
-      user-select: none;
-      max-width: 320px;
-    }
-    .controls label {
-      font-weight: 600;
-      margin-right: 4px;
-    }
+    .controls { /* your existing styles or leave empty */ }
     .undo-redo {
-      position: fixed;
+      position: absolute;
       bottom: 20px;
       right: 20px;
       display: flex;
       gap: 12px;
       user-select: none;
-      z-index: 999;
+      z-index: 10;
     }
-    .undo-redo button,
-    .controls button {
-      cursor: pointer;
+    .undo-redo button { /* your existing styles or leave empty */ }
+
+    /* Hamburger hide class */
+    .hide-hamburger {
+      opacity: 0 !important;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    /* Scrollbar styles */
+    body::-webkit-scrollbar {
+      width: 12px;
+    }
+    body::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    body::-webkit-scrollbar-thumb {
+      background-color: #888;
       border-radius: 6px;
-      border: 1px solid #bbb;
-      background: rgba(255 255 255 / 0.9);
-      padding: 6px 12px;
-      font-weight: 700;
-      user-select: none;
+      border: 3px solid #f1f1f1;
       transition: background-color 0.3s ease;
     }
-    .undo-redo button:hover,
-    .controls button:hover {
-      background-color: #eee;
+    /* When UI is hidden, hide only the thumb */
+    body.hide-ui::-webkit-scrollbar-thumb {
+      background-color: transparent;
+      pointer-events: none;
     }
-    #toggleControlsBtn {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-      font-size: 18px;
-      padding: 6px 10px;
-      font-weight: 700;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      background: rgba(255 255 255 / 0.85);
-      cursor: pointer;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-      user-select: none;
-    }
-    /* Auto-hide UI after 3 seconds inactivity */
-    body.hide-ui #toggleControlsBtn,
-    body.hide-ui::-webkit-scrollbar,
-    body.hide-ui #undoRedoPanel {
+
+    /* Auto-hide hamburger button */
+    body.hide-ui #toggleControlsBtn {
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.5s ease;
     }
-    /* Show UI normally */
-    #toggleControlsBtn,
-    #undoRedoPanel {
-      transition: opacity 0.5s ease;
-    }
-    /* Hide scrollbar thumb but keep track visible */
-    body.hide-ui::-webkit-scrollbar-thumb {
-      background-color: transparent;
-    }
-
-    /* Font panel styles */
-    .font-panel {
-      display: none;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .font-input-wrapper {
-      position: relative;
-      flex: 1 1 150px;
-    }
-    #fontInput {
-      width: 100%;
-      padding: 4px 6px;
-      font-size: 14px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .autocomplete-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #ccc;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 10;
-    }
-    .autocomplete-item {
-      padding: 4px 8px;
-      cursor: pointer;
-    }
-    .autocomplete-item.active,
-    .autocomplete-item:hover {
-      background-color: #ddd;
-    }
-    .add-font-wrapper {
-      display: flex;
-      gap: 4px;
-      flex: 1 1 100%;
-      margin-top: 6px;
-    }
-    #addFontInput {
-      flex: 1;
-      padding: 4px 6px;
-      font-size: 14px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
   </style>
 </head>
-<body style="background-color: transparent; font-family: 'sans-serif';">
+<body style="background-color: transparent; font-family: 'happy Titles';">
 
-  <button id="toggleControlsBtn" aria-label="Toggle Controls">☰</button>
+  <button id="toggleControlsBtn" aria-label="Toggle Controls" style="
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    font-size: 18px;
+    padding: 6px 10px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    background: rgba(255 255 255 / 0.85);
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.3s;
+    user-select: none;
+  ">☰</button>
 
   <div class="controls" id="controlsPanel" style="display: none;">
     <label for="bgColorPicker">BG:</label>
@@ -162,6 +96,9 @@
     <label for="fontColorPicker">Font Color:</label>
     <input type="color" id="fontColorPicker" title="Pick font color" />
     <button id="clearBGBtn" title="Clear background (transparent)">Clear BG</button>
+    <button id="savePageSettingsBtn" title="Save settings for this page" style="margin-left: 10px; padding: 5px 10px; border-radius: 6px; border: 1px solid #bbb; cursor: pointer;">
+      Save Settings for This Page
+    </button>
 
     <label for="fontSizeRange">Size:</label>
     <input type="range" id="fontSizeRange" min="5" max="50" value="20" title="Font size" />
@@ -180,7 +117,7 @@
 
     <button id="toggleFontPanelBtn" title="Show/Hide font input panel">Toggle Font Input</button>
 
-    <div class="font-panel" id="fontPanel">
+    <div class="font-panel" id="fontPanel" style="flex-wrap: wrap; display: none;">
       <label for="fontInput">Or type font:</label>
       <div class="font-input-wrapper">
         <input type="text" id="fontInput" placeholder="Type your font name" title="Enter a font installed on your device" autocomplete="off" />
@@ -194,358 +131,209 @@
     </div>
   </div>
 
-  <div class="clock" id="clock" style="font-size: 20vw;">9:27 PM</div>
+  <div class="clock" id="clock" style="font-size: 24vw;">9:27 PM</div>
 
   <div class="undo-redo" id="undoRedoPanel" style="display: none;">
     <button id="undoBtn">Undo</button>
     <button id="redoBtn">Redo</button>
   </div>
 
-<script>
-  // Clock update
-  function updateClock() {
-    const now = new Date();
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-
-  // DOM elements
-  const bgColorPicker = document.getElementById('bgColorPicker');
-  const fontColorPicker = document.getElementById('fontColorPicker');
-  const clearBGBtn = document.getElementById('clearBGBtn');
-  const fontSizeRange = document.getElementById('fontSizeRange');
-  const fontSelect = document.getElementById('fontSelect');
-  const fontInput = document.getElementById('fontInput');
-  const autocompleteList = document.getElementById('autocompleteList');
-  const clock = document.getElementById('clock');
-  const body = document.body;
-  const addFontInput = document.getElementById('addFontInput');
-  const addFontBtn = document.getElementById('addFontBtn');
-  const toggleFontPanelBtn = document.getElementById('toggleFontPanelBtn');
-  const fontPanel = document.getElementById('fontPanel');
-  const controlsPanel = document.getElementById('controlsPanel');
-  const undoRedoPanel = document.getElementById('undoRedoPanel');
-  const toggleControlsBtn = document.getElementById('toggleControlsBtn');
-  const savePageSettingsBtn = document.getElementById('savePageSettingsBtn');
-
-  let fonts = Array.from(fontSelect.options).map(opt => opt.value);
-  const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-  fonts = fonts.concat(savedCustomFonts);
-
-  let historyStack = [];
-  let redoStack = [];
-  let autocompleteActiveIndex = -1;
-
-  function saveState() {
-    historyStack.push({
-      bg: body.style.backgroundColor,
-      font: body.style.fontFamily,
-      size: clock.style.fontSize,
-      fontColor: clock.style.color
-    });
-    redoStack = [];
-  }
-
-  function restoreState(state) {
-    if (!state) return;
-    body.style.backgroundColor = state.bg || 'transparent';
-    body.style.fontFamily = state.font || '';
-    clock.style.fontSize = state.size || '20vw';
-    clock.style.color = state.fontColor || '#333';
-
-    bgColorPicker.value = rgbToHex(state.bg) || '';
-    fontColorPicker.value = rgbToHex(state.fontColor) || '';
-
-    if (fonts.includes(state.font)) {
-      fontSelect.value = state.font;
-      fontInput.value = '';
-    } else {
-      fontSelect.value = '';
-      fontInput.value = state.font || '';
+  <script>
+    // --- Clock ---
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
     }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    fontSizeRange.value = parseFloat(state.size) || 20;
-  }
+    // DOM elements
+    const bgColorPicker = document.getElementById('bgColorPicker');
+    const fontColorPicker = document.getElementById('fontColorPicker');
+    const clearBGBtn = document.getElementById('clearBGBtn');
+    const fontSizeRange = document.getElementById('fontSizeRange');
+    const fontSelect = document.getElementById('fontSelect');
+    const fontInput = document.getElementById('fontInput');
+    const autocompleteList = document.getElementById('autocompleteList');
+    const clock = document.getElementById('clock');
+    const body = document.body;
+    const addFontInput = document.getElementById('addFontInput');
+    const addFontBtn = document.getElementById('addFontBtn');
+    const toggleFontPanelBtn = document.getElementById('toggleFontPanelBtn');
+    const fontPanel = document.getElementById('fontPanel');
+    const controlsPanel = document.getElementById('controlsPanel');
+    const undoRedoPanel = document.getElementById('undoRedoPanel');
+    const toggleControlsBtn = document.getElementById('toggleControlsBtn');
+    const savePageSettingsBtn = document.getElementById('savePageSettingsBtn');
 
-  function rgbToHex(rgb) {
-    if (!rgb) return '';
-    const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-    return result
-      ? '#' +
-        [1, 2, 3]
-          .map(n => parseInt(result[n]).toString(16).padStart(2, '0'))
-          .join('')
-      : rgb; // if already hex or something else
-  }
+    // Fonts from dropdown + saved custom fonts
+    let fonts = Array.from(fontSelect.options).map(opt => opt.value);
+    const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+    fonts = fonts.concat(savedCustomFonts);
 
-  function updateFont(font) {
-    clock.style.fontFamily = font;
-    body.style.fontFamily = font;
-    savePageSettings();
-  }
+    let historyStack = [];
+    let redoStack = [];
+    let autocompleteActiveIndex = -1;
 
-  // Autocomplete helpers
-  function filterFonts(val) {
-    const lowerVal = val.toLowerCase();
-    return fonts.filter(f => f.toLowerCase().includes(lowerVal));
-  }
-  function clearAutocomplete() {
-    autocompleteList.innerHTML = '';
-    autocompleteList.style.display = 'none';
-    autocompleteActiveIndex = -1;
-  }
-  function showAutocomplete(matches) {
-    autocompleteList.innerHTML = '';
-    if (matches.length === 0) {
-      clearAutocomplete();
-      return;
-    }
-    matches.forEach((font, index) => {
-      const div = document.createElement('div');
-      div.textContent = font;
-      div.className = 'autocomplete-item';
-      if (index === 0) {
-        div.classList.add('active');
-        autocompleteActiveIndex = 0;
-      }
-      div.addEventListener('mousedown', () => {
-        selectAutocompleteItem(index, font);
-      });
-      autocompleteList.appendChild(div);
-    });
-    autocompleteList.style.display = 'block';
-  }
-  function selectAutocompleteItem(index, font) {
-    fontInput.value = font;
-    updateFont(font);
-    fontSelect.value = '';
-    clearAutocomplete();
-  }
-  function scrollIntoViewIfNeeded(element) {
-    if (!element) return;
-    const parent = autocompleteList;
-    const parentRect = parent.getBoundingClientRect();
-    const elRect = element.getBoundingClientRect();
-    if (elRect.bottom > parentRect.bottom) {
-      element.scrollIntoView(false);
-    } else if (elRect.top < parentRect.top) {
-      element.scrollIntoView();
-    }
-  }
-
-  // Event listeners for font select and input
-  fontSelect.addEventListener('change', (e) => {
-    const font = e.target.value;
-    fontInput.value = '';
-    updateFont(font);
-    clearAutocomplete();
-  });
-
-  fontInput.addEventListener('input', (e) => {
-    const val = e.target.value;
-    if (!val) {
-      clearAutocomplete();
-      return;
-    }
-    const matches = filterFonts(val);
-    showAutocomplete(matches);
-    updateFont(val);
-  });
-
-  fontInput.addEventListener('keydown', (e) => {
-    const items = autocompleteList.querySelectorAll('.autocomplete-item');
-    if (autocompleteList.style.display === 'block' && items.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        items[autocompleteActiveIndex]?.classList.remove('active');
-        autocompleteActiveIndex = (autocompleteActiveIndex + 1) % items.length;
-        items[autocompleteActiveIndex].classList.add('active');
-        scrollIntoViewIfNeeded(items[autocompleteActiveIndex]);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        items[autocompleteActiveIndex]?.classList.remove('active');
-        autocompleteActiveIndex = (autocompleteActiveIndex - 1 + items.length) % items.length;
-        items[autocompleteActiveIndex].classList.add('active');
-        scrollIntoViewIfNeeded(items[autocompleteActiveIndex]);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (autocompleteActiveIndex >= 0) {
-          const chosenFont = items[autocompleteActiveIndex].textContent;
-          selectAutocompleteItem(autocompleteActiveIndex, chosenFont);
-        }
-      } else if (e.key === 'Escape') {
-        clearAutocomplete();
-      }
-    }
-  });
-
-  fontInput.addEventListener('blur', () => {
-    setTimeout(() => {
-      clearAutocomplete();
-    }, 150);
-  });
-
-  // Color pickers event listeners
-  bgColorPicker.addEventListener('input', (e) => {
-    saveState();
-    body.style.backgroundColor = e.target.value;
-    savePageSettings();
-  });
-
-  fontColorPicker.addEventListener('input', (e) => {
-    saveState();
-    clock.style.color = e.target.value;
-    savePageSettings();
-  });
-
-  clearBGBtn.addEventListener('click', () => {
-    saveState();
-    body.style.backgroundColor = 'transparent';
-    bgColorPicker.value = '';
-    savePageSettings();
-  });
-
-  fontSizeRange.addEventListener('input', (e) => {
-    saveState();
-    const newSize = e.target.value;
-    clock.style.fontSize = newSize + 'vw';
-    savePageSettings();
-  });
-
-  addFontBtn.addEventListener('click', () => {
-    const newFont = addFontInput.value.trim();
-    if (!newFont) return alert('Enter a font name to add.');
-    if (!fonts.includes(newFont)) {
-      fonts.push(newFont);
-      const option = document.createElement('option');
-      option.value = newFont;
-      option.textContent = newFont;
-      fontSelect.appendChild(option);
-      const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-      if (!customFonts.includes(newFont)) {
-        customFonts.push(newFont);
-        localStorage.setItem('customFonts', JSON.stringify(customFonts));
-      }
-      alert(`Added "${newFont}" to font list!`);
-      addFontInput.value = '';
-    } else {
-      alert(`"${newFont}" is already in the font list.`);
-    }
-  });
-
-  document.getElementById('undoBtn').addEventListener('click', () => {
-    const lastState = historyStack.pop();
-    if (lastState) {
-      redoStack.push({
+    function saveState() {
+      historyStack.push({
         bg: body.style.backgroundColor,
         font: body.style.fontFamily,
         size: clock.style.fontSize,
         fontColor: clock.style.color
       });
-      restoreState(lastState);
-      savePageSettings();
+      redoStack = [];
     }
-  });
 
-  document.getElementById('redoBtn').addEventListener('click', () => {
-    const redoState = redoStack.pop();
-    if (redoState) {
+    function restoreState(state) {
+      if (!state) return;
+      body.style.backgroundColor = state.bg;
+      body.style.fontFamily = state.font;
+      clock.style.fontSize = state.size;
+      clock.style.color = state.fontColor || '#333';
+      bgColorPicker.value = rgbToHex(state.bg) || '#ffffff';
+      if (fonts.includes(state.font)) {
+        fontSelect.value = state.font;
+        fontInput.value = '';
+      } else {
+        fontSelect.value = '';
+        fontInput.value = state.font;
+      }
+      fontSizeRange.value = parseFloat(state.size);
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb) return null;
+      const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
+      return result
+        ? '#' +
+          [1, 2, 3]
+            .map(n => parseInt(result[n]).toString(16).padStart(2, '0'))
+            .join('')
+        : null;
+    }
+
+    // Font dropdown change
+    fontSelect.addEventListener('change', (e) => {
+      const font = e.target.value;
+      fontInput.value = '';
+      updateFont(font);
+      clearAutocomplete();
+      savePageSettings(); // save change immediately
+    });
+
+    // Font text input with autocomplete
+    fontInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (!val) {
+        clearAutocomplete();
+        return;
+      }
+      const matches = filterFonts(val);
+      showAutocomplete(matches);
+      updateFont(val);
+      savePageSettings(); // save change immediately
+    });
+
+    fontInput.addEventListener('keydown', (e) => {
+      const items = autocompleteList.querySelectorAll('.autocomplete-item');
+      if (autocompleteList.style.display === 'block' && items.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          items[autocompleteActiveIndex]?.classList.remove('active');
+          autocompleteActiveIndex = (autocompleteActiveIndex + 1) % items.length;
+          items[autocompleteActiveIndex].classList.add('active');
+          scrollIntoViewIfNeeded(items[autocompleteActiveIndex]);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          items[autocompleteActiveIndex]?.classList.remove('active');
+          autocompleteActiveIndex = (autocompleteActiveIndex - 1 + items.length) % items.length;
+          items[autocompleteActiveIndex].classList.add('active');
+          scrollIntoViewIfNeeded(items[autocompleteActiveIndex]);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (autocompleteActiveIndex >= 0) {
+            const chosenFont = items[autocompleteActiveIndex].textContent;
+            selectAutocompleteItem(autocompleteActiveIndex, chosenFont);
+            savePageSettings();
+          }
+        } else if (e.key === 'Escape') {
+          clearAutocomplete();
+        }
+      }
+    });
+
+    fontInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        clearAutocomplete();
+      }, 150);
+    });
+
+    // Background color picker
+    bgColorPicker.addEventListener('input', (e) => {
       saveState();
-      restoreState(redoState);
+      body.style.backgroundColor = e.target.value;
       savePageSettings();
-    }
-  });
+    });
 
-  toggleFontPanelBtn.addEventListener('click', () => {
-    if (fontPanel.style.display === 'none' || fontPanel.style.display === '') {
-      fontPanel.style.display = 'flex';
-      fontInput.focus();
-    } else {
-      fontPanel.style.display = 'none';
-      clearAutocomplete();
-    }
-  });
+    // Font color picker
+    fontColorPicker.addEventListener('input', (e) => {
+      saveState();
+      clock.style.color = e.target.value;
+      savePageSettings();
+    });
 
-  toggleControlsBtn.addEventListener('click', () => {
-    if (controlsPanel.style.display === 'none' || controlsPanel.style.display === '') {
-      controlsPanel.style.display = 'flex';
-      undoRedoPanel.style.display = 'flex';
-    } else {
-      controlsPanel.style.display = 'none';
-      undoRedoPanel.style.display = 'none';
-      clearAutocomplete();
-    }
-  });
+    // Clear BG button
+    clearBGBtn.addEventListener('click', () => {
+      saveState();
+      body.style.backgroundColor = 'transparent';
+      document.documentElement.style.backgroundColor = 'transparent';
+      bgColorPicker.value = '';
+      savePageSettings();
+    });
 
-  // Save page settings to localStorage for current page
-  function savePageSettings() {
-    const pageKey = window.location.pathname || 'defaultPage';
-    const pageSettings = {
-      bgColor: body.style.backgroundColor || '',
-      fontFamily: body.style.fontFamily || '',
-      fontSize: clock.style.fontSize || '',
-      fontColor: clock.style.color || ''
-    };
-    localStorage.setItem('pageSettings-' + pageKey, JSON.stringify(pageSettings));
-  }
+    // Font size slider
+    fontSizeRange.addEventListener('input', (e) => {
+      saveState();
+      const newSize = e.target.value;
+      clock.style.fontSize = newSize + 'vw';
+      savePageSettings();
+    });
 
-  // Load saved settings on page load
-  window.addEventListener('DOMContentLoaded', () => {
-    const pageKey = window.location.pathname || 'defaultPage';
-    const savedPageSettings = localStorage.getItem('pageSettings-' + pageKey);
+    // Add font button
+    addFontBtn.addEventListener('click', () => {
+      const newFont = addFontInput.value.trim();
+      if (!newFont) return alert('Enter a font name to add.');
+      if (!fonts.includes(newFont)) {
+        fonts.push(newFont);
+        const option = document.createElement('option');
+        option.value = newFont;
+        option.textContent = newFont;
+        fontSelect.appendChild(option);
+        const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+        if (!customFonts.includes(newFont)) {
+          customFonts.push(newFont);
+          localStorage.setItem('customFonts', JSON.stringify(customFonts));
+        }
+        alert(`Added "${newFont}" to font list!`);
+        addFontInput.value = '';
+      } else {
+        alert(`"${newFont}" is already in the font list.`);
+      }
+    });
 
-    if (savedPageSettings) {
-      const settings = JSON.parse(savedPageSettings);
-      restoreState({
-        bg: settings.bgColor,
-        font: settings.fontFamily,
-        size: settings.fontSize,
-        fontColor: settings.fontColor
-      });
-    } else {
-      // fallback to global saved values if no page-specific settings
-      const savedBG = localStorage.getItem('bgColor');
-      const savedFont = localStorage.getItem('fontFamily');
-      const savedSize = localStorage.getItem('fontSize');
-      const savedFontColor = localStorage.getItem('fontColor');
-
-      restoreState({
-        bg: savedBG || 'transparent',
-        font: savedFont || '',
-        size: savedSize ? savedSize + 'vw' : '20vw',
-        fontColor: savedFontColor || '#333'
-      });
-    }
-
-    fontPanel.style.display = 'none';
-    controlsPanel.style.display = 'none';
-    undoRedoPanel.style.display = 'none';
-
-    saveState(); // initial save for undo stack
-    startAutoHideUI(); // start auto-hide timer on load
-  });
-
-  // Auto-hide UI code
-  let uiTimeout;
-
-  function showUI() {
-    document.body.classList.remove('hide-ui');
-    clearTimeout(uiTimeout);
-    uiTimeout = setTimeout(() => {
-      document.body.classList.add('hide-ui');
-    }, 3000);
-  }
-
-  function startAutoHideUI() {
-    document.addEventListener('mousemove', showUI);
-    showUI(); // start timer immediately
-  }
-</script>
-
-</body>
-</html>
+    // Undo button
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      const lastState = historyStack.pop();
+      if (lastState) {
+        redoStack.push({
+          bg: body.style.backgroundColor,
+          font: body.style.fontFamily,
+          size: clock.style.fontSize,
+          fontColor: clock.style.color
+        });
+        restoreState(lastState);
