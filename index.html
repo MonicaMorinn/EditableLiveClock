@@ -2,116 +2,230 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Custom Clock</title>
   <style>
     html, body {
       margin: 0;
-      padding: 0;
-      background-color: transparent;
-      overflow: hidden;
       height: 100%;
+      background-color: transparent;
+      font-family: sans-serif;
+      overflow: hidden;
+      user-select: none;
     }
     .clock {
       font-size: 20vw;
-      text-align: center;
-      font-family: sans-serif;
+      font-weight: 500;
       color: #333;
-      user-select: none;
+      text-align: center;
+      line-height: 100vh;
     }
     .controls {
       position: absolute;
       top: 60px;
       right: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 14px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+      z-index: 1000;
+      max-width: 480px;
+      font-size: 1rem;
       display: none;
-      z-index: 999;
     }
-    .hamburger {
+    .controls input,
+    .controls select,
+    .controls button {
+      margin-top: 6px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      padding: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #burger {
       position: absolute;
       top: 20px;
-      left: 20px;
+      right: 20px;
+      width: 30px;
+      height: 22px;
       cursor: pointer;
-      z-index: 1000;
+      z-index: 2000;
       display: none;
       flex-direction: column;
-      gap: 5px;
-      background: rgba(255,255,255,0.95);
-      padding: 6px;
-      border-radius: 6px;
+      justify-content: space-between;
     }
-    .hamburger div {
-      width: 30px;
-      height: 3px;
-      background: #333;
+    .bar {
+      height: 4px;
+      background-color: #333;
+      border-radius: 2px;
+    }
+    #savedColors {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid #888;
     }
   </style>
 </head>
 <body>
-  <div class="hamburger" id="hamburger">
-    <div></div>
-    <div></div>
-    <div></div>
+  <div id="burger">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
   </div>
+
   <div class="controls" id="controls">
-    <!-- Your favorite controls go here -->
-    <!-- Color pickers, font select, size slider, saved colors, etc. -->
+    <label for="bgColor">Background Color:</label>
+    <input type="color" id="bgColor" />
+    <button id="clearBG">Clear Background</button>
+
+    <label for="fontColor">Font Color:</label>
+    <input type="color" id="fontColor" />
+
+    <label for="fontSize">Font Size:</label>
+    <input type="range" id="fontSize" min="5" max="50" value="20" />
+
+    <label>Saved Colors (max 5):</label>
+    <div id="savedColors"></div>
+    <button id="saveColor">Save Current Color</button>
+
+    <label for="fontSelect">Font:</label>
+    <select id="fontSelect">
+      <option value="sans-serif">Sans Serif</option>
+      <option value="Quicksand">Quicksand</option>
+      <option value="Comic Sans MS">Comic Sans</option>
+      <option value="Arial">Arial</option>
+      <option value="Georgia">Georgia</option>
+    </select>
   </div>
+
   <div class="clock" id="clock">--:--</div>
 
   <script>
     const clock = document.getElementById('clock');
-    const hamburger = document.getElementById('hamburger');
+    const burger = document.getElementById('burger');
     const controls = document.getElementById('controls');
+    const bgColor = document.getElementById('bgColor');
+    const fontColor = document.getElementById('fontColor');
+    const fontSize = document.getElementById('fontSize');
+    const fontSelect = document.getElementById('fontSelect');
+    const saveColor = document.getElementById('saveColor');
+    const savedColors = document.getElementById('savedColors');
+    const clearBG = document.getElementById('clearBG');
 
     function updateClock() {
       const now = new Date();
-      let h = now.getHours();
-      const m = String(now.getMinutes()).padStart(2, '0');
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
-      clock.textContent = `${h}:${m} ${ampm}`;
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      clock.textContent = `${hours}:${minutes} ${ampm}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    let hideTimeout;
-    function showHamburgerOnly() {
-      hamburger.style.display = 'flex';
-      controls.style.display = 'none';
-    }
-    function showEverything() {
-      hamburger.style.display = 'flex';
-      controls.style.display = 'block';
-    }
-    function hideAll() {
-      hamburger.style.display = 'none';
-      controls.style.display = 'none';
-    }
-    function resetHideTimer() {
-      clearTimeout(hideTimeout);
-      hideTimeout = setTimeout(hideAll, 3000);
+    let mouseTimer;
+    function showBurger() {
+      burger.style.display = 'flex';
+      clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(() => {
+        burger.style.display = 'none';
+        controls.style.display = 'none';
+      }, 3000);
     }
 
-    document.addEventListener('mousemove', () => {
-      if (controls.style.display === 'none') {
-        showHamburgerOnly();
-      } else {
-        showEverything();
+    document.addEventListener('mousemove', showBurger);
+
+    burger.addEventListener('click', () => {
+      controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
+    });
+
+    bgColor.addEventListener('input', e => {
+      document.body.style.backgroundColor = e.target.value;
+      saveSettings();
+    });
+    fontColor.addEventListener('input', e => {
+      clock.style.color = e.target.value;
+      saveSettings();
+    });
+    fontSize.addEventListener('input', e => {
+      clock.style.fontSize = `${e.target.value}vw`;
+      saveSettings();
+    });
+    fontSelect.addEventListener('change', e => {
+      document.body.style.fontFamily = e.target.value;
+      saveSettings();
+    });
+    clearBG.addEventListener('click', () => {
+      document.body.style.backgroundColor = 'transparent';
+      bgColor.value = '#ffffff';
+      saveSettings();
+    });
+
+    saveColor.addEventListener('click', () => {
+      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      const color = bgColor.value;
+      if (!saved.includes(color)) {
+        if (saved.length >= 5) saved.shift();
+        saved.push(color);
+        localStorage.setItem('savedColors', JSON.stringify(saved));
+        renderSavedColors();
       }
-      resetHideTimer();
     });
 
-    hamburger.addEventListener('click', () => {
-      showEverything();
-      resetHideTimer();
-    });
+    function renderSavedColors() {
+      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      savedColors.innerHTML = '';
+      saved.forEach(c => {
+        const swatch = document.createElement('div');
+        swatch.className = 'swatch';
+        swatch.style.backgroundColor = c;
+        swatch.title = c;
+        swatch.onclick = () => {
+          document.body.style.backgroundColor = c;
+          bgColor.value = c;
+          saveSettings();
+        };
+        savedColors.appendChild(swatch);
+      });
+    }
 
-    // Initial hide timer
-    resetHideTimer();
+    function saveSettings() {
+      const key = location.pathname;
+      const settings = {
+        bg: document.body.style.backgroundColor,
+        font: document.body.style.fontFamily,
+        size: clock.style.fontSize,
+        color: clock.style.color,
+      };
+      localStorage.setItem(`clock-${key}`, JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const key = location.pathname;
+      const settings = JSON.parse(localStorage.getItem(`clock-${key}`));
+      if (settings) {
+        document.body.style.backgroundColor = settings.bg || 'transparent';
+        document.body.style.fontFamily = settings.font || 'sans-serif';
+        clock.style.fontSize = settings.size || '20vw';
+        clock.style.color = settings.color || '#333';
+        bgColor.value = settings.bg || '#ffffff';
+        fontColor.value = settings.color || '#333';
+      }
+    }
+
+    loadSettings();
+    renderSavedColors();
   </script>
 </body>
 </html>
