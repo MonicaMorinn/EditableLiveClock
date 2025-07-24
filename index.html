@@ -157,6 +157,10 @@
     <label for="bgColorPicker">BG:</label>
     <input type="color" id="bgColorPicker" title="Pick background color">
     <button id="clearBGBtn" title="Clear background (transparent)">Clear BG</button>
+<div style="margin-top: 10px;">
+  <label>Saved Colors:</label>
+  <div id="savedColors" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;"></div>
+</div>
 
     <label for="fontSizeRange">Size:</label>
     <input type="range" id="fontSizeRange" min="5" max="50" value="20" title="Font size">
@@ -404,6 +408,45 @@
       bgColorPicker.value = '#ffffff';
       localStorage.setItem('bgColor', 'transparent');
     });
+    function addSavedColor(color) {
+  let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
+  if (!saved.includes(color)) {
+    saved.push(color);
+    localStorage.setItem('savedColors', JSON.stringify(saved));
+    renderSavedColors();
+  }
+}
+
+function renderSavedColors() {
+  const savedColors = JSON.parse(localStorage.getItem('savedColors') || '[]');
+  const container = document.getElementById('savedColors');
+  container.innerHTML = '';
+  savedColors.forEach(color => {
+    const swatch = document.createElement('div');
+    swatch.style.width = '24px';
+    swatch.style.height = '24px';
+    swatch.style.borderRadius = '4px';
+    swatch.style.backgroundColor = color;
+    swatch.style.cursor = 'pointer';
+    swatch.title = color;
+    swatch.addEventListener('click', () => {
+      body.style.backgroundColor = color;
+      bgColorPicker.value = color;
+      savePageSettings();
+    });
+    container.appendChild(swatch);
+  });
+}
+    savePageSettingsBtn.addEventListener('click', () => {
+  savePageSettings();
+  alert('Settings saved for this page!');
+});
+
+// Automatically add current color when selected
+bgColorPicker.addEventListener('change', (e) => {
+  addSavedColor(e.target.value);
+});
+renderSavedColors();
 
     fontSizeRange.addEventListener('input', (e) => {
       saveState();
@@ -497,6 +540,31 @@
       // Start with font input panel hidden
       fontPanel.style.display = 'none';
     });
+    function savePageSettings() {
+  const pageKey = location.pathname;
+  const settings = {
+    bgColor: body.style.backgroundColor,
+    fontFamily: body.style.fontFamily,
+    fontSize: clock.style.fontSize,
+    fontColor: clock.style.color
+  };
+  localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
+}
+
+function loadPageSettings() {
+  const pageKey = location.pathname;
+  const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
+  if (settings) {
+    body.style.backgroundColor = settings.bgColor || 'transparent';
+    body.style.fontFamily = settings.fontFamily || 'sans-serif';
+    clock.style.fontSize = settings.fontSize || '20vw';
+    clock.style.color = settings.fontColor || '#333';
+
+    if (bgColorPicker) bgColorPicker.value = settings.bgColor || '#ffffff';
+    if (fontColorPicker) fontColorPicker.value = settings.fontColor || '#333';
+    renderSavedColors();
+  }
+}
   </script>
 
 </body></html>
