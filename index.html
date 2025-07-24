@@ -2,263 +2,173 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Editable Clock</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Big Digital Clock</title>
   <style>
     body {
       margin: 0;
-      font-family: sans-serif;
-      background-color: white;
-      overflow-y: auto;
+      height: 100vh;
+      background-color: transparent;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      height: 100vh;
-      transition: background-color 0.3s;
+      align-items: center;
+      font-family: sans-serif;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      overflow-y: auto;
     }
-
     .clock {
-      font-size: 24vw;
-      color: black;
-      transition: all 0.3s ease;
+      font-size: 20vw;
+      font-weight: 500;
+      color: #333;
+      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
+      user-select: none;
     }
-
     .controls {
-      position: fixed;
-      top: 60px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 12px;
-      border-radius: 10px;
       display: none;
       flex-direction: column;
       gap: 10px;
-      z-index: 100;
-    }
-
-    .undo-redo {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 10px;
+      border-radius: 8px;
       position: fixed;
-      bottom: 20px;
-      left: 20px;
-      display: none;
-      gap: 10px;
+      top: 50px;
+      left: 10px;
       z-index: 100;
     }
-
+    .saved-colors {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
     #toggleControlsBtn {
       position: fixed;
       top: 10px;
       left: 10px;
       z-index: 1000;
+      font-size: 18px;
       padding: 6px 10px;
       font-weight: 700;
+      border-radius: 6px;
       border: 1px solid #bbb;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255 255 255 / 0.85);
       cursor: pointer;
+      opacity: 1;
       transition: opacity 0.3s;
-    }
-
-    body::-webkit-scrollbar {
-      width: 12px;
-    }
-
-    body::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 6px;
-      border: 3px solid #f1f1f1;
-    }
-
-    body.hide-ui::-webkit-scrollbar-thumb {
-      background: transparent;
-      pointer-events: none;
-    }
-
-    body.hide-ui #toggleControlsBtn {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    #fontSelect option {
-      font-size: 16px;
-    }
-
-    #fontSelect {
-      font-family: sans-serif;
+      user-select: none;
     }
   </style>
 </head>
 <body>
   <button id="toggleControlsBtn">☰</button>
-
   <div class="controls" id="controlsPanel">
-    <label>Background color:
+    <label>BG Color:
       <input type="color" id="bgColorPicker" />
+      <button id="saveBgColorBtn">+</button>
     </label>
+    <div class="saved-colors" id="savedBgColors"></div>
 
-    <label>Font color:
+    <label>Font Color:
       <input type="color" id="fontColorPicker" />
+      <button id="saveFontColorBtn">+</button>
     </label>
+    <div class="saved-colors" id="savedFontColors"></div>
 
     <label>Font:
-      <select id="fontSelect">
-        <option value="Arial" style="font-family: Arial;">Arial</option>
-        <option value="Verdana" style="font-family: Verdana;">Verdana</option>
-        <option value="Georgia" style="font-family: Georgia;">Georgia</option>
-        <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
-        <option value="Comic Sans MS" style="font-family: 'Comic Sans MS';">Comic Sans MS</option>
-        <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
-        <option value="Trebuchet MS" style="font-family: 'Trebuchet MS';">Trebuchet MS</option>
-      </select>
+      <input type="text" id="fontInput" placeholder="Type a font name (e.g. Segoe UI)" />
     </label>
-
-    <label>Font size:
-      <input type="range" id="fontSizeRange" min="5" max="50" value="24">
-    </label>
-
-    <button id="clearBGBtn">Clear Background</button>
-    <button id="savePageSettingsBtn">Save for this page</button>
   </div>
 
-  <div class="clock" id="clock"></div>
+  <div class="clock" id="clock">9:27 PM</div>
+<script>
+  const clock = document.getElementById("clock");
+  const fontInput = document.getElementById("fontInput");
+  const fontColorPicker = document.getElementById("fontColorPicker");
+  const bgColorPicker = document.getElementById("bgColorPicker");
+  const savedFontColors = document.getElementById("savedFontColors");
+  const savedBgColors = document.getElementById("savedBgColors");
+  const saveFontColorBtn = document.getElementById("saveFontColorBtn");
+  const saveBgColorBtn = document.getElementById("saveBgColorBtn");
+  const toggleControlsBtn = document.getElementById("toggleControlsBtn");
+  const controlsPanel = document.getElementById("controlsPanel");
 
-  <div class="undo-redo" id="undoRedoPanel">
-    <button id="undoBtn">Undo</button>
-    <button id="redoBtn">Redo</button>
-  </div>
+  // Update the time every second
+  function updateTime() {
+    const now = new Date();
+    let hrs = now.getHours();
+    const mins = now.getMinutes();
+    const isPM = hrs >= 12;
+    hrs = hrs % 12;
+    if (hrs === 0) hrs = 12;
+    clock.textContent = `${hrs}:${mins.toString().padStart(2, "0")} ${isPM ? "PM" : "AM"}`;
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
 
-  <script>
-    const clock = document.getElementById("clock");
-    const bgColorPicker = document.getElementById("bgColorPicker");
-    const fontColorPicker = document.getElementById("fontColorPicker");
-    const fontSelect = document.getElementById("fontSelect");
-    const fontSizeRange = document.getElementById("fontSizeRange");
-    const clearBGBtn = document.getElementById("clearBGBtn");
-    const savePageSettingsBtn = document.getElementById("savePageSettingsBtn");
+  // Font input
+  fontInput.addEventListener("input", () => {
+    const font = fontInput.value.trim();
+    clock.style.fontFamily = font || "sans-serif";
+  });
 
-    const stateHistory = [];
-    let redoHistory = [];
+  // Color pickers
+  bgColorPicker.addEventListener("input", () => {
+    document.body.style.backgroundColor = bgColorPicker.value;
+  });
+  fontColorPicker.addEventListener("input", () => {
+    clock.style.color = fontColorPicker.value;
+  });
 
-    function saveState() {
-      stateHistory.push({
-        bg: document.body.style.backgroundColor,
-        color: clock.style.color,
-        font: clock.style.fontFamily,
-        size: clock.style.fontSize,
-      });
-      if (stateHistory.length > 50) stateHistory.shift();
-      redoHistory = [];
-    }
+  // Save color swatches
+  function addColorSwatch(color, container, applyFn) {
+    const swatch = document.createElement("div");
+    swatch.className = "color-swatch";
+    swatch.style.backgroundColor = color;
+    swatch.title = color;
+    swatch.onclick = () => applyFn(color);
+    container.appendChild(swatch);
+  }
 
-    function restoreState(state) {
-      document.body.style.backgroundColor = state.bg;
-      clock.style.color = state.color;
-      clock.style.fontFamily = state.font;
-      clock.style.fontSize = state.size;
-    }
-
-    document.getElementById("undoBtn").onclick = () => {
-      if (stateHistory.length > 1) {
-        const last = stateHistory.pop();
-        redoHistory.push({
-          bg: document.body.style.backgroundColor,
-          color: clock.style.color,
-          font: clock.style.fontFamily,
-          size: clock.style.fontSize,
-        });
-        restoreState(stateHistory[stateHistory.length - 1]);
-      }
-    };
-
-    document.getElementById("redoBtn").onclick = () => {
-      if (redoHistory.length) {
-        const state = redoHistory.pop();
-        saveState();
-        restoreState(state);
-      }
-    };
-
-    function updateClock() {
-      const now = new Date();
-      let h = now.getHours();
-      let m = now.getMinutes().toString().padStart(2, '0');
-      let suffix = h >= 12 ? "PM" : "AM";
-      h = h % 12 || 12;
-      clock.textContent = `${h}:${m} ${suffix}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    bgColorPicker.addEventListener("input", () => {
-      saveState();
-      document.body.style.backgroundColor = bgColorPicker.value;
+  saveFontColorBtn.onclick = () => {
+    const color = fontColorPicker.value;
+    addColorSwatch(color, savedFontColors, (col) => {
+      clock.style.color = col;
+      fontColorPicker.value = col;
     });
-
-    fontColorPicker.addEventListener("input", () => {
-      saveState();
-      clock.style.color = fontColorPicker.value;
+  };
+  saveBgColorBtn.onclick = () => {
+    const color = bgColorPicker.value;
+    addColorSwatch(color, savedBgColors, (col) => {
+      document.body.style.backgroundColor = col;
+      bgColorPicker.value = col;
     });
+  };
 
-    fontSelect.addEventListener("change", () => {
-      saveState();
-      clock.style.fontFamily = fontSelect.value;
-    });
+  // Toggle control panel
+  toggleControlsBtn.onclick = () => {
+    controlsPanel.style.display =
+      controlsPanel.style.display === "flex" ? "none" : "flex";
+  };
 
-    fontSizeRange.addEventListener("input", () => {
-      saveState();
-      clock.style.fontSize = fontSizeRange.value + "vw";
-    });
-
-    clearBGBtn.onclick = () => {
-      saveState();
-      document.body.style.backgroundColor = "white";
-    };
-
-    savePageSettingsBtn.onclick = () => {
-      const state = {
-        bg: document.body.style.backgroundColor,
-        color: clock.style.color,
-        font: clock.style.fontFamily,
-        size: clock.style.fontSize
-      };
-      localStorage.setItem("clockPageSettings", JSON.stringify(state));
-    };
-
-    function loadSettings() {
-      const saved = localStorage.getItem("clockPageSettings");
-      if (!saved) return;
-      const state = JSON.parse(saved);
-      restoreState(state);
-    }
-
-    loadSettings();
-    saveState();
-
-    // ☰ Toggle button
-    const toggleControlsBtn = document.getElementById("toggleControlsBtn");
-    const controlsPanel = document.getElementById("controlsPanel");
-    const undoRedoPanel = document.getElementById("undoRedoPanel");
-
-    toggleControlsBtn.addEventListener("click", () => {
-      const isVisible = controlsPanel.style.display === "flex";
-      controlsPanel.style.display = isVisible ? "none" : "flex";
-      undoRedoPanel.style.display = isVisible ? "none" : "flex";
-      resetUI();
-    });
-
-    // Auto-hide UI
-    let uiTimer;
-    function resetUI() {
-      document.body.classList.remove("hide-ui");
-      clearTimeout(uiTimer);
-      uiTimer = setTimeout(() => {
-        document.body.classList.add("hide-ui");
-      }, 3000);
-    }
-
-    document.addEventListener("mousemove", resetUI);
-    resetUI();
-  </script>
+  // Hide button after 3s idle, show on mouse move
+  let idleTimer;
+  const hideBtn = () => (toggleControlsBtn.style.opacity = 0);
+  const showBtn = () => {
+    toggleControlsBtn.style.opacity = 1;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(hideBtn, 3000);
+  };
+  document.addEventListener("mousemove", showBtn);
+  showBtn();
+</script>
 </body>
 </html>
