@@ -1,144 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Big Digital Clock</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background-color: transparent;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: sans-serif;
-      transition: background-color 0.3s ease;
-      user-select: none;
-      overflow-y: auto;
-    }
-    /* Permanent scrollbar hide */
-    body.hide-scrollbar-perm {
-      overflow-y: hidden !important;
-    }
-    /* Temporary scrollbar hide for auto-hide */
-    body.hide-scrollbar-temp {
-      overflow-y: hidden;
-    }
-    .clock {
-      font-size: 20vw;
-      font-weight: 500;
-      color: #333;
-      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
-      user-select: none;
-      z-index: 5;
-    }
-    .controls {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      z-index: 10;
-      background: rgba(255 255 255 / 0.95);
-      padding: 12px 14px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
-      max-width: 480px;
-      font-size: 1rem;
-      user-select: none;
-      transition: opacity 0.3s ease;
-    }
-    .controls.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .controls label {
-      font-weight: 600;
-    }
-    .controls input[type="color"],
-    .controls input[type="range"],
-    .controls select,
-    .controls input[type="text"],
-    .controls button {
-      cursor: pointer;
-      padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      font-size: 1rem;
-      transition: border-color 0.15s ease;
-      font-family: inherit;
-    }
-    .controls button:hover,
-    .controls input:focus,
-    .controls select:focus {
-      border-color: #0078d7;
-      outline: none;
-      box-shadow: 0 0 5px #0078d7aa;
-    }
-    .autocomplete-list {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      right: 0;
-      max-height: 150px;
-      overflow-y: auto;
-      background: white;
-      border: 1px solid #ccc;
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      z-index: 20;
-      font-size: 1rem;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      user-select: none;
-    }
-    .autocomplete-item {
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: background-color 0.15s ease;
-    }
-    .autocomplete-item:hover,
-    .autocomplete-item.active {
-      background-color: #0078d7;
-      color: white;
-    }
-    .font-panel {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-top: 10px;
-    }
-
-    /* Hamburger lines container */
-    #hamburgerLines {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 30px;
-      height: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      cursor: pointer;
-      z-index: 20;
-      user-select: none;
-      transition: opacity 0.3s ease;
-      opacity: 1;
-    }
-    #hamburgerLines.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .line {
-      height: 4px;
-      background-color: #0078d7;
-      border-radius: 2px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Big Digital Clock</title>
+<style>
+  /* Basic styling */
+  body {
+    margin: 0;
+    height: 100vh;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: sans-serif;
+    user-select: none;
+    overflow-y: auto;
+    transition: background-color 0.3s ease;
+  }
+  /* Scrollbar hidden permanently */
+  body.hide-scrollbar-perm {
+    overflow-y: hidden !important;
+  }
+  /* Scrollbar hidden temporarily with auto-hide */
+  body.hide-scrollbar-temp {
+    overflow-y: hidden;
+  }
+  .clock {
+    font-size: 20vw;
+    font-weight: 500;
+    color: #333;
+    user-select: none;
+    transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
+    z-index: 5;
+  }
+  /* Controls panel */
+  .controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255 255 255 / 0.95);
+    padding: 12px 14px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    max-width: 480px;
+    font-size: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+  }
+  .controls.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .controls label {
+    font-weight: 600;
+  }
+  .controls input[type="color"],
+  .controls input[type="range"],
+  .controls select,
+  .controls input[type="text"],
+  .controls button {
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+  }
+  .controls button:hover,
+  .controls input:focus,
+  .controls select:focus {
+    border-color: #0078d7;
+    outline: none;
+    box-shadow: 0 0 5px #0078d7aa;
+  }
+  .autocomplete-list {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    right: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 20;
+    font-size: 1rem;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    user-select: none;
+  }
+  .autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .autocomplete-item:hover,
+  .autocomplete-item.active {
+    background-color: #0078d7;
+    color: white;
+  }
+  .font-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    position: relative;
+    width: 100%;
+  }
+  #savedColors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  #savedColors div {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  /* Hamburger lines */
+  #hamburgerLines {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 30px;
+    height: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    z-index: 20;
+    user-select: none;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+  #hamburgerLines.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .line {
+    height: 4px;
+    background-color: #0078d7;
+    border-radius: 2px;
+  }
+</style>
 </head>
 <body style="background-color: transparent; font-family: 'happy Titles';">
 
@@ -159,7 +172,7 @@
 
     <div style="width: 100%;">
       <label>Saved Colors (max 5):</label>
-      <div id="savedColors" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
+      <div id="savedColors"></div>
       <button id="saveCurrentColorBtn">Save Current Color</button>
     </div>
 
@@ -180,15 +193,15 @@
 
     <div class="font-panel">
       <label for="fontInput">Search Font:</label>
-      <input type="text" id="fontInput" placeholder="Type font name" />
+      <input type="text" id="fontInput" placeholder="Type font name" autocomplete="off" />
       <div id="autocompleteList" class="autocomplete-list" style="display: none;"></div>
 
-      <label for="addFontInput">Add Font:</label>
+      <label for="addFontInput" style="margin-left: 10px;">Add Font:</label>
       <input type="text" id="addFontInput" />
       <button id="addFontBtn">Add Font</button>
     </div>
 
-    <button id="savePageSettingsBtn">Save Settings for This Page</button>
+    <button id="savePageSettingsBtn" style="margin-top:10px; width: 100%;">Save Settings for This Page</button>
 
     <div style="width: 100%; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
       <label for="toggleScrollbar" style="font-weight: 600; cursor: pointer;">
@@ -203,7 +216,7 @@
     </div>
   </div>
 
-  <div class="clock" id="clock" style="font-size: 24vw;">--:--</div>
+  <div class="clock" id="clock">--:--</div>
 
   <script>
     const clock = document.getElementById('clock');
@@ -222,11 +235,10 @@
     const body = document.body;
     const controlsPanel = document.getElementById('controlsPanel');
     const hamburgerLines = document.getElementById('hamburgerLines');
-
     const toggleScrollbar = document.getElementById('toggleScrollbar');
     const toggleAutoHide = document.getElementById('toggleAutoHide');
 
-    // CLOCK
+    // CLOCK UPDATE - 12h with AM/PM
     function updateClock() {
       const now = new Date();
       let hours = now.getHours();
@@ -238,11 +250,11 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // SAVED COLORS
+    // SAVED COLORS - max 5, unique
     function addSavedColor(color) {
       let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
       if (!saved.includes(color)) {
-        if (saved.length >= 5) saved.shift(); // Remove oldest if 5 saved
+        if (saved.length >= 5) saved.shift();
         saved.push(color);
         localStorage.setItem('savedColors', JSON.stringify(saved));
         renderSavedColors();
@@ -254,11 +266,7 @@
       savedColorsDiv.innerHTML = '';
       savedColors.forEach(color => {
         const swatch = document.createElement('div');
-        swatch.style.width = '24px';
-        swatch.style.height = '24px';
-        swatch.style.borderRadius = '4px';
         swatch.style.backgroundColor = color;
-        swatch.style.cursor = 'pointer';
         swatch.title = color;
         swatch.addEventListener('click', () => {
           body.style.backgroundColor = color;
@@ -273,8 +281,8 @@
       addSavedColor(bgColorPicker.value);
     });
 
-    // FONT + AUTOCOMPLETE
-    let fonts = Array.from(fontSelect.options).map(opt => opt.value);
+    // FONT MANAGEMENT
+    let fonts = Array.from(fontSelect.options).map(o => o.value);
     const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
     fonts = fonts.concat(savedCustomFonts);
 
@@ -284,9 +292,8 @@
     }
 
     fontSelect.addEventListener('change', e => {
-      const font = e.target.value;
       fontInput.value = '';
-      updateFont(font);
+      updateFont(e.target.value);
     });
 
     function filterFonts(query) {
@@ -296,15 +303,15 @@
     function showAutocomplete(matches) {
       autocompleteList.innerHTML = '';
       matches.forEach(match => {
-        const item = document.createElement('div');
-        item.textContent = match;
-        item.className = 'autocomplete-item';
-        item.addEventListener('mousedown', () => {
+        const div = document.createElement('div');
+        div.textContent = match;
+        div.className = 'autocomplete-item';
+        div.addEventListener('mousedown', () => {
           fontInput.value = match;
           updateFont(match);
           autocompleteList.style.display = 'none';
         });
-        autocompleteList.appendChild(item);
+        autocompleteList.appendChild(div);
       });
       autocompleteList.style.display = matches.length ? 'block' : 'none';
     }
@@ -317,7 +324,9 @@
     });
 
     fontInput.addEventListener('blur', () => {
-      setTimeout(() => (autocompleteList.style.display = 'none'), 200);
+      setTimeout(() => {
+        autocompleteList.style.display = 'none';
+      }, 150);
     });
 
     addFontBtn.addEventListener('click', () => {
@@ -329,6 +338,7 @@
         option.value = newFont;
         option.textContent = newFont;
         fontSelect.appendChild(option);
+
         const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
         if (!customFonts.includes(newFont)) {
           customFonts.push(newFont);
@@ -341,7 +351,7 @@
       }
     });
 
-    // SETTINGS SAVE/LOAD
+    // SAVE/LOAD SETTINGS
     function savePageSettings() {
       const pageKey = location.pathname;
       const settings = {
@@ -367,20 +377,20 @@
         if (bgColorPicker) bgColorPicker.value = settings.bgColor || '#ffffff';
         if (fontColorPicker) fontColorPicker.value = settings.fontColor || '#333';
 
-        if (settings.hideScrollbarPerm) {
-          toggleScrollbar.checked = true;
+        toggleScrollbar.checked = !!settings.hideScrollbarPerm;
+        toggleAutoHide.checked = !!settings.autoHideControls;
+
+        if (toggleScrollbar.checked) {
           body.classList.add('hide-scrollbar-perm');
         } else {
-          toggleScrollbar.checked = false;
           body.classList.remove('hide-scrollbar-perm');
         }
 
-        if (settings.autoHideControls) {
-          toggleAutoHide.checked = true;
+        if (toggleAutoHide.checked) {
           enableAutoHideControls();
         } else {
-          toggleAutoHide.checked = false;
           disableAutoHideControls();
+          showControls(); // make sure controls visible if auto-hide off
         }
 
         if (settings.savedColors && Array.isArray(settings.savedColors)) {
@@ -391,6 +401,7 @@
         }
       } else {
         renderSavedColors();
+        showControls();
       }
     }
 
@@ -430,12 +441,11 @@
       savePageSettings();
     });
 
-    // AUTO-HIDE CONTROLS LOGIC
+    // AUTO-HIDE CONTROLS
     let autoHideTimeout;
     function hideControls() {
       controlsPanel.classList.add('hidden');
       hamburgerLines.classList.add('hidden');
-      // Only hide scrollbar if permanent hide is NOT checked
       if (!toggleScrollbar.checked) {
         body.classList.add('hide-scrollbar-temp');
       }
@@ -458,20 +468,22 @@
     }
     function disableAutoHideControls() {
       clearTimeout(autoHideTimeout);
-      showControls();
       window.removeEventListener('mousemove', resetAutoHideTimer);
     }
+
     toggleAutoHide.addEventListener('change', () => {
       if (toggleAutoHide.checked) {
         enableAutoHideControls();
       } else {
         disableAutoHideControls();
+        showControls();
       }
       savePageSettings();
     });
 
-    // INIT
+    // Initialize all
     loadPageSettings();
+
   </script>
 </body>
 </html>
