@@ -3,408 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Big Digital Clock</title>
+  <title>Custom Clock</title>
   <style>
-    body {
+    html, body {
       margin: 0;
-      height: 100vh;
+      padding: 0;
       background-color: transparent;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: sans-serif;
-      transition: background-color 0.3s ease;
-      user-select: none;
-      overflow-y: auto;
-    }
-    body.hide-scrollbar-temp {
       overflow: hidden;
+      height: 100%;
     }
     .clock {
       font-size: 20vw;
-      font-weight: 500;
+      text-align: center;
+      font-family: sans-serif;
       color: #333;
-      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
       user-select: none;
     }
     .controls {
       position: absolute;
-      top: 20px;
+      top: 60px;
       right: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      z-index: 10;
-      background: rgba(255 255 255 / 0.95);
-      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.15);
-      max-width: 480px;
-      font-size: 1rem;
-    }
-    .controls.hidden {
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
       display: none;
-    }
-    .controls label {
-      font-weight: 600;
-    }
-    .controls input[type="color"],
-    .controls input[type="range"],
-    .controls select,
-    .controls input[type="text"],
-    .controls button {
-      cursor: pointer;
-      padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      font-size: 1rem;
-      transition: border-color 0.15s ease;
-      font-family: inherit;
-    }
-    .controls button:hover,
-    .controls input:focus,
-    .controls select:focus {
-      border-color: #0078d7;
-      outline: none;
-      box-shadow: 0 0 5px #0078d7aa;
-    }
-    .autocomplete-list {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      right: 0;
-      max-height: 150px;
-      overflow-y: auto;
-      background: white;
-      border: 1px solid #ccc;
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      z-index: 20;
-      font-size: 1rem;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-      user-select: none;
-    }
-    .autocomplete-item {
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: background-color 0.15s ease;
-    }
-    .autocomplete-item:hover,
-    .autocomplete-item.active {
-      background-color: #0078d7;
-      color: white;
-    }
-    .font-panel {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-top: 10px;
+      z-index: 999;
     }
     .hamburger {
-      position: fixed;
+      position: absolute;
       top: 20px;
       left: 20px;
-      z-index: 20;
       cursor: pointer;
-      display: flex;
+      z-index: 1000;
+      display: none;
       flex-direction: column;
       gap: 5px;
+      background: rgba(255,255,255,0.95);
       padding: 6px;
       border-radius: 6px;
-      background: rgba(255,255,255,0.95);
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-      transition: opacity 0.3s ease;
-    }
-    .hamburger.hidden {
-      display: none;
     }
     .hamburger div {
-      width: 24px;
+      width: 30px;
       height: 3px;
-      background-color: #333;
-      border-radius: 3px;
+      background: #333;
     }
   </style>
 </head>
 <body>
-
-  <div class="hamburger hidden" id="hamburgerLines">
+  <div class="hamburger" id="hamburger">
     <div></div>
     <div></div>
     <div></div>
   </div>
-
-  <div class="controls hidden" id="controlsPanel">
-    <label for="bgColorPicker">BG:</label>
-    <input type="color" id="bgColorPicker" />
-    <button id="clearBGBtn">Clear BG</button>
-
-    <label for="fontColorPicker">Font Color:</label>
-    <input type="color" id="fontColorPicker" />
-
-    <div style="width: 100%;">
-      <label>Saved Colors (max 5):</label>
-      <div id="savedColors" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
-      <button id="saveCurrentColorBtn">Save Current Color</button>
-    </div>
-
-    <label for="fontSizeRange">Size:</label>
-    <input type="range" id="fontSizeRange" min="5" max="50" value="20" />
-
-    <label for="fontSelect">Font:</label>
-    <select id="fontSelect">
-      <option value="sans-serif">Sans Serif</option>
-      <option value="Quicksand">Quicksand</option>
-      <option value="Arial">Arial</option>
-      <option value="Comic Sans MS">Comic Sans MS</option>
-      <option value="Georgia">Georgia</option>
-      <option value="Courier New">Courier New</option>
-      <option value="Times New Roman">Times New Roman</option>
-      <option value="Verdana">Verdana</option>
-    </select>
-
-    <div class="font-panel">
-      <label for="fontInput">Search Font:</label>
-      <input type="text" id="fontInput" placeholder="Type font name" />
-      <div id="autocompleteList" class="autocomplete-list" style="display: none;"></div>
-
-      <label for="addFontInput">Add Font:</label>
-      <input type="text" id="addFontInput" />
-      <button id="addFontBtn">Add Font</button>
-    </div>
+  <div class="controls" id="controls">
+    <!-- Your favorite controls go here -->
+    <!-- Color pickers, font select, size slider, saved colors, etc. -->
   </div>
-
   <div class="clock" id="clock">--:--</div>
 
   <script>
     const clock = document.getElementById('clock');
-    const bgColorPicker = document.getElementById('bgColorPicker');
-    const fontColorPicker = document.getElementById('fontColorPicker');
-    const fontSizeRange = document.getElementById('fontSizeRange');
-    const fontSelect = document.getElementById('fontSelect');
-    const fontInput = document.getElementById('fontInput');
-    const addFontInput = document.getElementById('addFontInput');
-    const addFontBtn = document.getElementById('addFontBtn');
-    const clearBGBtn = document.getElementById('clearBGBtn');
-    const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
-    const savedColorsDiv = document.getElementById('savedColors');
-    const autocompleteList = document.getElementById('autocompleteList');
-    const hamburgerLines = document.getElementById('hamburgerLines');
-    const controlsPanel = document.getElementById('controlsPanel');
-    const body = document.body;
+    const hamburger = document.getElementById('hamburger');
+    const controls = document.getElementById('controls');
 
-    // CLOCK
     function updateClock() {
       const now = new Date();
-      let hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      clock.textContent = `${hours}:${minutes} ${ampm}`;
+      let h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      clock.textContent = `${h}:${m} ${ampm}`;
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    // FONT + AUTOCOMPLETE
-    let fonts = Array.from(fontSelect.options).map(opt => opt.value);
-    const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-    fonts = fonts.concat(savedCustomFonts);
-
-    function updateFont(font) {
-      body.style.fontFamily = font;
-      savePageSettings();
+    let hideTimeout;
+    function showHamburgerOnly() {
+      hamburger.style.display = 'flex';
+      controls.style.display = 'none';
     }
-
-    fontSelect.addEventListener('change', e => {
-      const font = e.target.value;
-      fontInput.value = '';
-      updateFont(font);
-    });
-
-    function filterFonts(query) {
-      return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
-    }
-
-    function showAutocomplete(matches) {
-      autocompleteList.innerHTML = '';
-      matches.forEach(match => {
-        const item = document.createElement('div');
-        item.textContent = match;
-        item.className = 'autocomplete-item';
-        item.addEventListener('mousedown', () => {
-          fontInput.value = match;
-          updateFont(match);
-          autocompleteList.style.display = 'none';
-        });
-        autocompleteList.appendChild(item);
-      });
-      autocompleteList.style.display = matches.length ? 'block' : 'none';
-    }
-
-    fontInput.addEventListener('input', e => {
-      const val = e.target.value;
-      const matches = filterFonts(val);
-      showAutocomplete(matches);
-      updateFont(val);
-    });
-
-    fontInput.addEventListener('blur', () => {
-      setTimeout(() => (autocompleteList.style.display = 'none'), 200);
-    });
-
-    addFontBtn.addEventListener('click', () => {
-      const newFont = fontInput.value.trim() || addFontInput.value.trim();
-      if (!newFont) return alert('Enter a font name to add.');
-      if (!fonts.includes(newFont)) {
-        fonts.push(newFont);
-        const option = document.createElement('option');
-        option.value = newFont;
-        option.textContent = newFont;
-        fontSelect.appendChild(option);
-        const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-        if (!customFonts.includes(newFont)) {
-          customFonts.push(newFont);
-          localStorage.setItem('customFonts', JSON.stringify(customFonts));
-        }
-        alert(`Added "${newFont}" to font list!`);
-        addFontInput.value = '';
-      } else {
-        alert(`"${newFont}" is already in the font list.`);
-      }
-    });
-
-    // COLOR SAVE
-    function addSavedColor(color) {
-      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
-      if (!saved.includes(color)) {
-        if (saved.length >= 5) saved.shift();
-        saved.push(color);
-        localStorage.setItem('savedColors', JSON.stringify(saved));
-        renderSavedColors();
-      }
-    }
-
-    function renderSavedColors() {
-      const savedColors = JSON.parse(localStorage.getItem('savedColors') || '[]');
-      savedColorsDiv.innerHTML = '';
-      savedColors.forEach(color => {
-        const swatch = document.createElement('div');
-        swatch.style.width = '24px';
-        swatch.style.height = '24px';
-        swatch.style.borderRadius = '4px';
-        swatch.style.backgroundColor = color;
-        swatch.style.cursor = 'pointer';
-        swatch.title = color;
-        swatch.addEventListener('click', () => {
-          body.style.backgroundColor = color;
-          bgColorPicker.value = color;
-          savePageSettings();
-        });
-        savedColorsDiv.appendChild(swatch);
-      });
-    }
-
-    saveCurrentColorBtn.addEventListener('click', () => {
-      addSavedColor(bgColorPicker.value);
-    });
-
-    // SETTINGS
-    function savePageSettings() {
-      const pageKey = location.pathname;
-      const settings = {
-        bgColor: body.style.backgroundColor,
-        fontFamily: body.style.fontFamily,
-        fontSize: clock.style.fontSize,
-        fontColor: clock.style.color,
-        savedColors: JSON.parse(localStorage.getItem('savedColors') || '[]'),
-      };
-      localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
-    }
-
-    function loadPageSettings() {
-      const pageKey = location.pathname;
-      const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
-      if (settings) {
-        body.style.backgroundColor = settings.bgColor || 'transparent';
-        body.style.fontFamily = settings.fontFamily || 'sans-serif';
-        clock.style.fontSize = settings.fontSize || '20vw';
-        clock.style.color = settings.fontColor || '#333';
-        bgColorPicker.value = settings.bgColor || '#ffffff';
-        fontColorPicker.value = settings.fontColor || '#333';
-        localStorage.setItem('savedColors', JSON.stringify(settings.savedColors || []));
-      }
-    }
-
-    // SCROLLBAR + HAMBURGER TOGGLE
-    function showBurgerOnly() {
-      hamburgerLines.classList.remove('hidden');
-      controlsPanel.classList.add('hidden');
-      body.classList.add('hide-scrollbar-temp');
-    }
-    function showControls() {
-      hamburgerLines.classList.remove('hidden');
-      controlsPanel.classList.remove('hidden');
-      body.classList.remove('hide-scrollbar-temp');
+    function showEverything() {
+      hamburger.style.display = 'flex';
+      controls.style.display = 'block';
     }
     function hideAll() {
-      hamburgerLines.classList.add('hidden');
-      controlsPanel.classList.add('hidden');
-      body.classList.add('hide-scrollbar-temp');
+      hamburger.style.display = 'none';
+      controls.style.display = 'none';
     }
-
-    let controlsVisible = false;
-    let hideTimeout;
-
-    function resetHideTimeout() {
+    function resetHideTimer() {
       clearTimeout(hideTimeout);
-      if (controlsVisible) {
-        showControls();
-        hideTimeout = setTimeout(() => {
-          controlsVisible = false;
-          showBurgerOnly();
-        }, 3000);
-      } else {
-        showBurgerOnly();
-        hideTimeout = setTimeout(hideAll, 3000);
-      }
+      hideTimeout = setTimeout(hideAll, 3000);
     }
 
-    hamburgerLines.addEventListener('click', () => {
-      controlsVisible = !controlsVisible;
-      if (controlsVisible) showControls();
-      else showBurgerOnly();
-      resetHideTimeout();
+    document.addEventListener('mousemove', () => {
+      if (controls.style.display === 'none') {
+        showHamburgerOnly();
+      } else {
+        showEverything();
+      }
+      resetHideTimer();
     });
 
-    document.addEventListener('mousemove', resetHideTimeout);
-    document.addEventListener('keydown', resetHideTimeout);
-
-    // OTHER EVENTS
-    bgColorPicker.addEventListener('input', e => {
-      body.style.backgroundColor = e.target.value;
-      savePageSettings();
-    });
-    fontColorPicker.addEventListener('input', e => {
-      clock.style.color = e.target.value;
-      savePageSettings();
-    });
-    fontSizeRange.addEventListener('input', e => {
-      clock.style.fontSize = e.target.value + 'vw';
-      savePageSettings();
-    });
-    clearBGBtn.addEventListener('click', () => {
-      body.style.backgroundColor = 'transparent';
-      bgColorPicker.value = '#ffffff';
-      savePageSettings();
+    hamburger.addEventListener('click', () => {
+      showEverything();
+      resetHideTimer();
     });
 
-    // INIT
-    loadPageSettings();
-    renderSavedColors();
-    resetHideTimeout();
+    // Initial hide timer
+    resetHideTimer();
   </script>
 </body>
 </html>
