@@ -1,159 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Digital Clock</title>
-<style>
-  body {
-    margin: 0;
-    height: 100vh;
-    background-color: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: sans-serif;
-    user-select: none;
-    overflow-y: auto;
-    transition: background-color 0.3s ease;
-  }
-  body.hide-scrollbar-temp {
-    overflow-y: hidden;
-  }
-  .clock {
-    font-size: 20vw;
-    font-weight: 500;
-    color: #333;
-    user-select: none;
-    transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
-    z-index: 5;
-  }
-  .controls {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(255 255 255 / 0.95);
-    padding: 12px 14px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.15);
-    max-width: 480px;
-    font-size: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-    z-index: 10;
-    transition: opacity 0.3s ease;
-  }
-  .controls.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .controls label {
-    font-weight: 600;
-  }
-  .controls input[type="color"],
-  .controls input[type="range"],
-  .controls select,
-  .controls input[type="text"],
-  .controls button {
-    cursor: pointer;
-    padding: 5px 8px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: border-color 0.15s ease;
-  }
-  .controls button:hover,
-  .controls input:focus,
-  .controls select:focus {
-    border-color: #0078d7;
-    outline: none;
-    box-shadow: 0 0 5px #0078d7aa;
-  }
-  .autocomplete-list {
-    position: absolute;
-    top: 40px;
-    left: 0;
-    right: 0;
-    max-height: 150px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid #ccc;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    z-index: 20;
-    font-size: 1rem;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-    user-select: none;
-  }
-  .autocomplete-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-  }
-  .autocomplete-item:hover,
-  .autocomplete-item.active {
-    background-color: #0078d7;
-    color: white;
-  }
-  .font-panel {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    margin-top: 10px;
-    position: relative;
-    width: 100%;
-  }
-  #savedColors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 6px;
-  }
-  #savedColors div {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  #hamburgerLines {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 30px;
-    height: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
-    z-index: 20;
-    user-select: none;
-    transition: opacity 0.3s ease;
-    opacity: 1;
-  }
-  #hamburgerLines.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .line {
-    height: 4px;
-    background-color: #0078d7;
-    border-radius: 2px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Big Digital Clock</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: sans-serif;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      overflow-y: auto;
+    }
+    body.hide-scrollbar-temp {
+      overflow: hidden;
+    }
+    .clock {
+      font-size: 20vw;
+      font-weight: 500;
+      color: #333;
+      transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+    .controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      z-index: 10;
+      background: rgba(255 255 255 / 0.95);
+      padding: 12px 14px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+      max-width: 480px;
+      font-size: 1rem;
+    }
+    .controls.hidden {
+      display: none;
+    }
+    .controls label {
+      font-weight: 600;
+    }
+    .controls input[type="color"],
+    .controls input[type="range"],
+    .controls select,
+    .controls input[type="text"],
+    .controls button {
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      font-size: 1rem;
+      transition: border-color 0.15s ease;
+      font-family: inherit;
+    }
+    .controls button:hover,
+    .controls input:focus,
+    .controls select:focus {
+      border-color: #0078d7;
+      outline: none;
+      box-shadow: 0 0 5px #0078d7aa;
+    }
+    .autocomplete-list {
+      position: absolute;
+      top: 40px;
+      left: 0;
+      right: 0;
+      max-height: 150px;
+      overflow-y: auto;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      z-index: 20;
+      font-size: 1rem;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      user-select: none;
+    }
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+      background-color: #0078d7;
+      color: white;
+    }
+    .font-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .hamburger {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 20;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 6px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      transition: opacity 0.3s ease;
+    }
+    .hamburger.hidden {
+      display: none;
+    }
+    .hamburger div {
+      width: 24px;
+      height: 3px;
+      background-color: #333;
+      border-radius: 3px;
+    }
+  </style>
 </head>
-<body style="background-color: transparent; font-family: 'happy Titles';">
+<body>
 
-  <div id="hamburgerLines" title="Toggle Controls">
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
+  <div class="hamburger hidden" id="hamburgerLines">
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
 
-  <div class="controls" id="controlsPanel">
+  <div class="controls hidden" id="controlsPanel">
     <label for="bgColorPicker">BG:</label>
     <input type="color" id="bgColorPicker" />
     <button id="clearBGBtn">Clear BG</button>
@@ -163,7 +147,7 @@
 
     <div style="width: 100%;">
       <label>Saved Colors (max 5):</label>
-      <div id="savedColors"></div>
+      <div id="savedColors" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;"></div>
       <button id="saveCurrentColorBtn">Save Current Color</button>
     </div>
 
@@ -184,10 +168,10 @@
 
     <div class="font-panel">
       <label for="fontInput">Search Font:</label>
-      <input type="text" id="fontInput" placeholder="Type font name" autocomplete="off" />
+      <input type="text" id="fontInput" placeholder="Type font name" />
       <div id="autocompleteList" class="autocomplete-list" style="display: none;"></div>
 
-      <label for="addFontInput" style="margin-left: 10px;">Add Font:</label>
+      <label for="addFontInput">Add Font:</label>
       <input type="text" id="addFontInput" />
       <button id="addFontBtn">Add Font</button>
     </div>
@@ -195,255 +179,232 @@
 
   <div class="clock" id="clock">--:--</div>
 
-<script>
-  const clock = document.getElementById('clock');
-  const bgColorPicker = document.getElementById('bgColorPicker');
-  const fontColorPicker = document.getElementById('fontColorPicker');
-  const fontSizeRange = document.getElementById('fontSizeRange');
-  const fontSelect = document.getElementById('fontSelect');
-  const fontInput = document.getElementById('fontInput');
-  const addFontInput = document.getElementById('addFontInput');
-  const addFontBtn = document.getElementById('addFontBtn');
-  const clearBGBtn = document.getElementById('clearBGBtn');
-  const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
-  const savedColorsDiv = document.getElementById('savedColors');
-  const autocompleteList = document.getElementById('autocompleteList');
-  const body = document.body;
-  const controlsPanel = document.getElementById('controlsPanel');
-  const hamburgerLines = document.getElementById('hamburgerLines');
+  <script>
+    const clock = document.getElementById('clock');
+    const bgColorPicker = document.getElementById('bgColorPicker');
+    const fontColorPicker = document.getElementById('fontColorPicker');
+    const fontSizeRange = document.getElementById('fontSizeRange');
+    const fontSelect = document.getElementById('fontSelect');
+    const fontInput = document.getElementById('fontInput');
+    const addFontInput = document.getElementById('addFontInput');
+    const addFontBtn = document.getElementById('addFontBtn');
+    const clearBGBtn = document.getElementById('clearBGBtn');
+    const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
+    const savedColorsDiv = document.getElementById('savedColors');
+    const autocompleteList = document.getElementById('autocompleteList');
+    const hamburgerLines = document.getElementById('hamburgerLines');
+    const controlsPanel = document.getElementById('controlsPanel');
+    const body = document.body;
 
-  // Update clock every second (12h format with AM/PM)
-  function updateClock() {
-    const now = new Date();
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    clock.textContent = `${hours}:${minutes} ${ampm}`;
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
+    // CLOCK
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      clock.textContent = `${hours}:${minutes} ${ampm}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-  // Convert rgb to hex string, helper for color pickers
-  function rgbToHex(rgb) {
-    const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-    return result
-      ? '#' + [1,2,3].map(i => parseInt(result[i]).toString(16).padStart(2,'0')).join('')
-      : rgb;
-  }
+    // FONT + AUTOCOMPLETE
+    let fonts = Array.from(fontSelect.options).map(opt => opt.value);
+    const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+    fonts = fonts.concat(savedCustomFonts);
 
-  // Render saved colors for current page only
-  function renderSavedColors(colors) {
-    savedColorsDiv.innerHTML = '';
-    let colorsToRender = colors || JSON.parse(localStorage.getItem(`clockSettings-${location.pathname}`))?.savedColors || [];
-    colorsToRender = colorsToRender.slice(-5); // max 5
-    colorsToRender.forEach(color => {
-      const swatch = document.createElement('div');
-      swatch.style.backgroundColor = color;
-      swatch.title = color;
-      swatch.addEventListener('click', () => {
-        body.style.backgroundColor = color;
-        bgColorPicker.value = color;
-        savePageSettings();
-      });
-      savedColorsDiv.appendChild(swatch);
-    });
-  }
-
-  // Add a saved color (max 5)
-  function addSavedColor(color) {
-    let saved = JSON.parse(localStorage.getItem(`clockSettings-${location.pathname}`))?.savedColors || [];
-    if (!saved.includes(color)) {
-      if (saved.length >= 5) saved.shift();
-      saved.push(color);
-      renderSavedColors(saved);
+    function updateFont(font) {
+      body.style.fontFamily = font;
       savePageSettings();
     }
-  }
 
-  // Update font on body
-  function updateFont(font) {
-    body.style.fontFamily = font;
-  }
+    fontSelect.addEventListener('change', e => {
+      const font = e.target.value;
+      fontInput.value = '';
+      updateFont(font);
+    });
 
-  // Save all settings for this page in localStorage
-  function savePageSettings() {
-    const pageKey = location.pathname;
-    // Get saved colors currently displayed
-    let currentSavedColors = [];
-    const savedColorsDivChildren = savedColorsDiv.children;
-    for (let i = 0; i < savedColorsDivChildren.length; i++) {
-      const color = savedColorsDivChildren[i].style.backgroundColor;
-      if (color) currentSavedColors.push(rgbToHex(color));
+    function filterFonts(query) {
+      return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
     }
-    if (currentSavedColors.length > 5) currentSavedColors = currentSavedColors.slice(-5);
 
-    const settings = {
-      bgColor: body.style.backgroundColor,
-      fontFamily: body.style.fontFamily,
-      fontSize: clock.style.fontSize,
-      fontColor: clock.style.color,
-      savedColors: currentSavedColors,
-    };
-    localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
-  }
+    function showAutocomplete(matches) {
+      autocompleteList.innerHTML = '';
+      matches.forEach(match => {
+        const item = document.createElement('div');
+        item.textContent = match;
+        item.className = 'autocomplete-item';
+        item.addEventListener('mousedown', () => {
+          fontInput.value = match;
+          updateFont(match);
+          autocompleteList.style.display = 'none';
+        });
+        autocompleteList.appendChild(item);
+      });
+      autocompleteList.style.display = matches.length ? 'block' : 'none';
+    }
 
-  // Load page settings
-  function loadPageSettings() {
-    const pageKey = location.pathname;
-    const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
-    if (settings) {
-      body.style.backgroundColor = settings.bgColor || 'transparent';
-      body.style.fontFamily = settings.fontFamily || 'sans-serif';
-      clock.style.fontSize = settings.fontSize || '20vw';
-      clock.style.color = settings.fontColor || '#333';
-      if (bgColorPicker) bgColorPicker.value = rgbToHex(body.style.backgroundColor) || '#ffffff';
-      if (fontColorPicker) fontColorPicker.value = rgbToHex(clock.style.color) || '#333';
-      if (settings.savedColors && Array.isArray(settings.savedColors)) {
-        renderSavedColors(settings.savedColors);
+    fontInput.addEventListener('input', e => {
+      const val = e.target.value;
+      const matches = filterFonts(val);
+      showAutocomplete(matches);
+      updateFont(val);
+    });
+
+    fontInput.addEventListener('blur', () => {
+      setTimeout(() => (autocompleteList.style.display = 'none'), 200);
+    });
+
+    addFontBtn.addEventListener('click', () => {
+      const newFont = fontInput.value.trim() || addFontInput.value.trim();
+      if (!newFont) return alert('Enter a font name to add.');
+      if (!fonts.includes(newFont)) {
+        fonts.push(newFont);
+        const option = document.createElement('option');
+        option.value = newFont;
+        option.textContent = newFont;
+        fontSelect.appendChild(option);
+        const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+        if (!customFonts.includes(newFont)) {
+          customFonts.push(newFont);
+          localStorage.setItem('customFonts', JSON.stringify(customFonts));
+        }
+        alert(`Added "${newFont}" to font list!`);
+        addFontInput.value = '';
       } else {
+        alert(`"${newFont}" is already in the font list.`);
+      }
+    });
+
+    // COLOR SAVE
+    function addSavedColor(color) {
+      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      if (!saved.includes(color)) {
+        if (saved.length >= 5) saved.shift();
+        saved.push(color);
+        localStorage.setItem('savedColors', JSON.stringify(saved));
         renderSavedColors();
       }
-    } else {
-      renderSavedColors();
-      showControls();
     }
-  }
 
-  // Hamburger toggle controls visibility + scrollbar toggle
-  function toggleControls() {
-    if (controlsPanel.classList.contains('hidden')) {
-      showControls();
-    } else {
-      hideControls();
-    }
-  }
-  function showControls() {
-    controlsPanel.classList.remove('hidden');
-    hamburgerLines.classList.remove('hidden');
-    body.classList.remove('hide-scrollbar-temp');
-  }
-  function hideControls() {
-    controlsPanel.classList.add('hidden');
-    hamburgerLines.classList.add('hidden');
-    body.classList.add('hide-scrollbar-temp');
-  }
-
-  // Auto hide controls and hamburger after 3 seconds of inactivity
-  let hideTimeout;
-  function resetHideTimeout() {
-    showControls();
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      hideControls();
-    }, 3000);
-  }
-  document.addEventListener('mousemove', resetHideTimeout);
-  document.addEventListener('keydown', resetHideTimeout);
-
-  hamburgerLines.addEventListener('click', toggleControls);
-
-  // Event listeners for auto-save
-  bgColorPicker.addEventListener('input', e => {
-    body.style.backgroundColor = e.target.value;
-    savePageSettings();
-  });
-
-  fontColorPicker.addEventListener('input', e => {
-    clock.style.color = e.target.value;
-    savePageSettings();
-  });
-
-  fontSizeRange.addEventListener('input', e => {
-    clock.style.fontSize = e.target.value + 'vw';
-    savePageSettings();
-  });
-
-  fontSelect.addEventListener('change', e => {
-    fontInput.value = '';
-    updateFont(e.target.value);
-    savePageSettings();
-  });
-
-  fontInput.addEventListener('input', e => {
-    const val = e.target.value;
-    updateFont(val);
-    savePageSettings();
-    // autocomplete logic below
-    const matches = filterFonts(val);
-    showAutocomplete(matches);
-  });
-
-  fontInput.addEventListener('blur', () => {
-    setTimeout(() => (autocompleteList.style.display = 'none'), 200);
-  });
-
-  addFontBtn.addEventListener('click', () => {
-    const newFont = fontInput.value.trim() || addFontInput.value.trim();
-    if (!newFont) return alert('Enter a font name to add.');
-    if (!fonts.includes(newFont)) {
-      fonts.push(newFont);
-      const option = document.createElement('option');
-      option.value = newFont;
-      option.textContent = newFont;
-      fontSelect.appendChild(option);
-
-      const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-      if (!customFonts.includes(newFont)) {
-        customFonts.push(newFont);
-        localStorage.setItem('customFonts', JSON.stringify(customFonts));
-      }
-      alert(`Added "${newFont}" to font list!`);
-      addFontInput.value = '';
-      savePageSettings();
-    } else {
-      alert(`"${newFont}" is already in the font list.`);
-    }
-  });
-
-  saveCurrentColorBtn.addEventListener('click', () => {
-    addSavedColor(bgColorPicker.value);
-  });
-
-  clearBGBtn.addEventListener('click', () => {
-    body.style.backgroundColor = 'transparent';
-    bgColorPicker.value = '#ffffff';
-    savePageSettings();
-  });
-
-  // Fonts array for search and autocomplete
-  let fonts = Array.from(fontSelect.options).map(o => o.value);
-  const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-  fonts = fonts.concat(savedCustomFonts);
-
-  // Filter fonts for autocomplete
-  function filterFonts(query) {
-    return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
-  }
-
-  // Show autocomplete suggestions
-  function showAutocomplete(matches) {
-    autocompleteList.innerHTML = '';
-    matches.forEach(match => {
-      const item = document.createElement('div');
-      item.textContent = match;
-      item.className = 'autocomplete-item';
-      item.addEventListener('mousedown', () => {
-        fontInput.value = match;
-        updateFont(match);
-        savePageSettings();
-        autocompleteList.style.display = 'none';
+    function renderSavedColors() {
+      const savedColors = JSON.parse(localStorage.getItem('savedColors') || '[]');
+      savedColorsDiv.innerHTML = '';
+      savedColors.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.style.width = '24px';
+        swatch.style.height = '24px';
+        swatch.style.borderRadius = '4px';
+        swatch.style.backgroundColor = color;
+        swatch.style.cursor = 'pointer';
+        swatch.title = color;
+        swatch.addEventListener('click', () => {
+          body.style.backgroundColor = color;
+          bgColorPicker.value = color;
+          savePageSettings();
+        });
+        savedColorsDiv.appendChild(swatch);
       });
-      autocompleteList.appendChild(item);
+    }
+
+    saveCurrentColorBtn.addEventListener('click', () => {
+      addSavedColor(bgColorPicker.value);
     });
-    autocompleteList.style.display = matches.length ? 'block' : 'none';
-  }
 
-  // Initialize everything
-  loadPageSettings();
-  resetHideTimeout();
+    // SETTINGS
+    function savePageSettings() {
+      const pageKey = location.pathname;
+      const settings = {
+        bgColor: body.style.backgroundColor,
+        fontFamily: body.style.fontFamily,
+        fontSize: clock.style.fontSize,
+        fontColor: clock.style.color,
+        savedColors: JSON.parse(localStorage.getItem('savedColors') || '[]'),
+      };
+      localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
+    }
 
-</script>
+    function loadPageSettings() {
+      const pageKey = location.pathname;
+      const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
+      if (settings) {
+        body.style.backgroundColor = settings.bgColor || 'transparent';
+        body.style.fontFamily = settings.fontFamily || 'sans-serif';
+        clock.style.fontSize = settings.fontSize || '20vw';
+        clock.style.color = settings.fontColor || '#333';
+        bgColorPicker.value = settings.bgColor || '#ffffff';
+        fontColorPicker.value = settings.fontColor || '#333';
+        localStorage.setItem('savedColors', JSON.stringify(settings.savedColors || []));
+      }
+    }
 
+    // SCROLLBAR + HAMBURGER TOGGLE
+    function showBurgerOnly() {
+      hamburgerLines.classList.remove('hidden');
+      controlsPanel.classList.add('hidden');
+      body.classList.add('hide-scrollbar-temp');
+    }
+    function showControls() {
+      hamburgerLines.classList.remove('hidden');
+      controlsPanel.classList.remove('hidden');
+      body.classList.remove('hide-scrollbar-temp');
+    }
+    function hideAll() {
+      hamburgerLines.classList.add('hidden');
+      controlsPanel.classList.add('hidden');
+      body.classList.add('hide-scrollbar-temp');
+    }
+
+    let controlsVisible = false;
+    let hideTimeout;
+
+    function resetHideTimeout() {
+      clearTimeout(hideTimeout);
+      if (controlsVisible) {
+        showControls();
+        hideTimeout = setTimeout(() => {
+          controlsVisible = false;
+          showBurgerOnly();
+        }, 3000);
+      } else {
+        showBurgerOnly();
+        hideTimeout = setTimeout(hideAll, 3000);
+      }
+    }
+
+    hamburgerLines.addEventListener('click', () => {
+      controlsVisible = !controlsVisible;
+      if (controlsVisible) showControls();
+      else showBurgerOnly();
+      resetHideTimeout();
+    });
+
+    document.addEventListener('mousemove', resetHideTimeout);
+    document.addEventListener('keydown', resetHideTimeout);
+
+    // OTHER EVENTS
+    bgColorPicker.addEventListener('input', e => {
+      body.style.backgroundColor = e.target.value;
+      savePageSettings();
+    });
+    fontColorPicker.addEventListener('input', e => {
+      clock.style.color = e.target.value;
+      savePageSettings();
+    });
+    fontSizeRange.addEventListener('input', e => {
+      clock.style.fontSize = e.target.value + 'vw';
+      savePageSettings();
+    });
+    clearBGBtn.addEventListener('click', () => {
+      body.style.backgroundColor = 'transparent';
+      bgColorPicker.value = '#ffffff';
+      savePageSettings();
+    });
+
+    // INIT
+    loadPageSettings();
+    renderSavedColors();
+    resetHideTimeout();
+  </script>
 </body>
 </html>
