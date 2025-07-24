@@ -155,6 +155,39 @@
     }
     setInterval(updateClock, 1000);
     updateClock();
+    <script>
+  function updateClock() {
+    ...
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+    <script>
+  function updateClock() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    document.getElementById('clock').textContent = `${hours}:${minutes} ${ampm}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Toggle the controls panel when hamburger button is clicked
+  const toggleButton = document.getElementById('toggleControlsBtn');
+  const controlsPanel = document.getElementById('controlsPanel');
+
+  toggleButton.addEventListener('click', () => {
+    if (controlsPanel.style.display === 'none' || controlsPanel.style.display === '') {
+      controlsPanel.style.display = 'block';
+    } else {
+      controlsPanel.style.display = 'none';
+    }
+  });
+</script>
+
+</script>
+
   </script>
 
 </body>
