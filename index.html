@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Big Digital Clock</title>
 <style>
-  /* Basic styling */
   body {
     margin: 0;
     height: 100vh;
@@ -18,11 +17,6 @@
     overflow-y: auto;
     transition: background-color 0.3s ease;
   }
-  /* Scrollbar hidden permanently */
-  body.hide-scrollbar-perm {
-    overflow-y: hidden !important;
-  }
-  /* Scrollbar hidden temporarily with auto-hide */
   body.hide-scrollbar-temp {
     overflow-y: hidden;
   }
@@ -34,7 +28,6 @@
     transition: font-size 0.2s ease, font-family 0.3s ease, color 0.3s ease;
     z-index: 5;
   }
-  /* Controls panel */
   .controls {
     position: fixed;
     top: 20px;
@@ -126,7 +119,6 @@
     border-radius: 4px;
     cursor: pointer;
   }
-  /* Hamburger lines */
   #hamburgerLines {
     position: fixed;
     top: 20px;
@@ -155,8 +147,7 @@
 </head>
 <body style="background-color: transparent; font-family: 'happy Titles';">
 
-  <!-- Hamburger lines -->
-  <div id="hamburgerLines" title="Menu">
+  <div id="hamburgerLines" title="Toggle Controls">
     <div class="line"></div>
     <div class="line"></div>
     <div class="line"></div>
@@ -200,290 +191,259 @@
       <input type="text" id="addFontInput" />
       <button id="addFontBtn">Add Font</button>
     </div>
-
-    <button id="savePageSettingsBtn" style="margin-top:10px; width: 100%;">Save Settings for This Page</button>
-
-    <div style="width: 100%; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-      <label for="toggleScrollbar" style="font-weight: 600; cursor: pointer;">
-        <input type="checkbox" id="toggleScrollbar" />
-        Hide Scrollbar Permanently
-      </label>
-
-      <label for="toggleAutoHide" style="font-weight: 600; cursor: pointer;">
-        <input type="checkbox" id="toggleAutoHide" />
-        Auto-hide Controls & Burger
-      </label>
-    </div>
   </div>
 
   <div class="clock" id="clock">--:--</div>
 
-  <script>
-    const clock = document.getElementById('clock');
-    const bgColorPicker = document.getElementById('bgColorPicker');
-    const fontColorPicker = document.getElementById('fontColorPicker');
-    const fontSizeRange = document.getElementById('fontSizeRange');
-    const fontSelect = document.getElementById('fontSelect');
-    const fontInput = document.getElementById('fontInput');
-    const addFontInput = document.getElementById('addFontInput');
-    const addFontBtn = document.getElementById('addFontBtn');
-    const clearBGBtn = document.getElementById('clearBGBtn');
-    const savePageSettingsBtn = document.getElementById('savePageSettingsBtn');
-    const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
-    const savedColorsDiv = document.getElementById('savedColors');
-    const autocompleteList = document.getElementById('autocompleteList');
-    const body = document.body;
-    const controlsPanel = document.getElementById('controlsPanel');
-    const hamburgerLines = document.getElementById('hamburgerLines');
-    const toggleScrollbar = document.getElementById('toggleScrollbar');
-    const toggleAutoHide = document.getElementById('toggleAutoHide');
+<script>
+  const clock = document.getElementById('clock');
+  const bgColorPicker = document.getElementById('bgColorPicker');
+  const fontColorPicker = document.getElementById('fontColorPicker');
+  const fontSizeRange = document.getElementById('fontSizeRange');
+  const fontSelect = document.getElementById('fontSelect');
+  const fontInput = document.getElementById('fontInput');
+  const addFontInput = document.getElementById('addFontInput');
+  const addFontBtn = document.getElementById('addFontBtn');
+  const clearBGBtn = document.getElementById('clearBGBtn');
+  const saveCurrentColorBtn = document.getElementById('saveCurrentColorBtn');
+  const savedColorsDiv = document.getElementById('savedColors');
+  const autocompleteList = document.getElementById('autocompleteList');
+  const body = document.body;
+  const controlsPanel = document.getElementById('controlsPanel');
+  const hamburgerLines = document.getElementById('hamburgerLines');
 
-    // CLOCK UPDATE - 12h with AM/PM
-    function updateClock() {
-      const now = new Date();
-      let hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      clock.textContent = `${hours}:${minutes} ${ampm}`;
+  // Update clock every second (12h format with AM/PM)
+  function updateClock() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    clock.textContent = `${hours}:${minutes} ${ampm}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Convert rgb to hex string, helper for color pickers
+  function rgbToHex(rgb) {
+    const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
+    return result
+      ? '#' + [1,2,3].map(i => parseInt(result[i]).toString(16).padStart(2,'0')).join('')
+      : rgb;
+  }
+
+  // Render saved colors for current page only
+  function renderSavedColors(colors) {
+    savedColorsDiv.innerHTML = '';
+    let colorsToRender = colors || JSON.parse(localStorage.getItem(`clockSettings-${location.pathname}`))?.savedColors || [];
+    colorsToRender = colorsToRender.slice(-5); // max 5
+    colorsToRender.forEach(color => {
+      const swatch = document.createElement('div');
+      swatch.style.backgroundColor = color;
+      swatch.title = color;
+      swatch.addEventListener('click', () => {
+        body.style.backgroundColor = color;
+        bgColorPicker.value = color;
+        savePageSettings();
+      });
+      savedColorsDiv.appendChild(swatch);
+    });
+  }
+
+  // Add a saved color (max 5)
+  function addSavedColor(color) {
+    let saved = JSON.parse(localStorage.getItem(`clockSettings-${location.pathname}`))?.savedColors || [];
+    if (!saved.includes(color)) {
+      if (saved.length >= 5) saved.shift();
+      saved.push(color);
+      renderSavedColors(saved);
+      savePageSettings();
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+  }
 
-    // SAVED COLORS - max 5, unique
-    function addSavedColor(color) {
-      let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
-      if (!saved.includes(color)) {
-        if (saved.length >= 5) saved.shift();
-        saved.push(color);
-        localStorage.setItem('savedColors', JSON.stringify(saved));
+  // Update font on body
+  function updateFont(font) {
+    body.style.fontFamily = font;
+  }
+
+  // Save all settings for this page in localStorage
+  function savePageSettings() {
+    const pageKey = location.pathname;
+    // Get saved colors currently displayed
+    let currentSavedColors = [];
+    const savedColorsDivChildren = savedColorsDiv.children;
+    for (let i = 0; i < savedColorsDivChildren.length; i++) {
+      const color = savedColorsDivChildren[i].style.backgroundColor;
+      if (color) currentSavedColors.push(rgbToHex(color));
+    }
+    if (currentSavedColors.length > 5) currentSavedColors = currentSavedColors.slice(-5);
+
+    const settings = {
+      bgColor: body.style.backgroundColor,
+      fontFamily: body.style.fontFamily,
+      fontSize: clock.style.fontSize,
+      fontColor: clock.style.color,
+      savedColors: currentSavedColors,
+    };
+    localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
+  }
+
+  // Load page settings
+  function loadPageSettings() {
+    const pageKey = location.pathname;
+    const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
+    if (settings) {
+      body.style.backgroundColor = settings.bgColor || 'transparent';
+      body.style.fontFamily = settings.fontFamily || 'sans-serif';
+      clock.style.fontSize = settings.fontSize || '20vw';
+      clock.style.color = settings.fontColor || '#333';
+      if (bgColorPicker) bgColorPicker.value = rgbToHex(body.style.backgroundColor) || '#ffffff';
+      if (fontColorPicker) fontColorPicker.value = rgbToHex(clock.style.color) || '#333';
+      if (settings.savedColors && Array.isArray(settings.savedColors)) {
+        renderSavedColors(settings.savedColors);
+      } else {
         renderSavedColors();
       }
-    }
-
-    function renderSavedColors() {
-      const savedColors = JSON.parse(localStorage.getItem('savedColors') || '[]');
-      savedColorsDiv.innerHTML = '';
-      savedColors.forEach(color => {
-        const swatch = document.createElement('div');
-        swatch.style.backgroundColor = color;
-        swatch.title = color;
-        swatch.addEventListener('click', () => {
-          body.style.backgroundColor = color;
-          bgColorPicker.value = color;
-          savePageSettings();
-        });
-        savedColorsDiv.appendChild(swatch);
-      });
-    }
-
-    saveCurrentColorBtn.addEventListener('click', () => {
-      addSavedColor(bgColorPicker.value);
-    });
-
-    // FONT MANAGEMENT
-    let fonts = Array.from(fontSelect.options).map(o => o.value);
-    const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-    fonts = fonts.concat(savedCustomFonts);
-
-    function updateFont(font) {
-      body.style.fontFamily = font;
-      savePageSettings();
-    }
-
-    fontSelect.addEventListener('change', e => {
-      fontInput.value = '';
-      updateFont(e.target.value);
-    });
-
-    function filterFonts(query) {
-      return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
-    }
-
-    function showAutocomplete(matches) {
-      autocompleteList.innerHTML = '';
-      matches.forEach(match => {
-        const div = document.createElement('div');
-        div.textContent = match;
-        div.className = 'autocomplete-item';
-        div.addEventListener('mousedown', () => {
-          fontInput.value = match;
-          updateFont(match);
-          autocompleteList.style.display = 'none';
-        });
-        autocompleteList.appendChild(div);
-      });
-      autocompleteList.style.display = matches.length ? 'block' : 'none';
-    }
-
-    fontInput.addEventListener('input', e => {
-      const val = e.target.value;
-      const matches = filterFonts(val);
-      showAutocomplete(matches);
-      updateFont(val);
-    });
-
-    fontInput.addEventListener('blur', () => {
-      setTimeout(() => {
-        autocompleteList.style.display = 'none';
-      }, 150);
-    });
-
-    addFontBtn.addEventListener('click', () => {
-      const newFont = fontInput.value.trim() || addFontInput.value.trim();
-      if (!newFont) return alert('Enter a font name to add.');
-      if (!fonts.includes(newFont)) {
-        fonts.push(newFont);
-        const option = document.createElement('option');
-        option.value = newFont;
-        option.textContent = newFont;
-        fontSelect.appendChild(option);
-
-        const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
-        if (!customFonts.includes(newFont)) {
-          customFonts.push(newFont);
-          localStorage.setItem('customFonts', JSON.stringify(customFonts));
-        }
-        alert(`Added "${newFont}" to font list!`);
-        addFontInput.value = '';
-      } else {
-        alert(`"${newFont}" is already in the font list.`);
-      }
-    });
-
-    // SAVE/LOAD SETTINGS
-    function savePageSettings() {
-      const pageKey = location.pathname;
-      const settings = {
-        bgColor: body.style.backgroundColor,
-        fontFamily: body.style.fontFamily,
-        fontSize: clock.style.fontSize,
-        fontColor: clock.style.color,
-        hideScrollbarPerm: toggleScrollbar.checked,
-        autoHideControls: toggleAutoHide.checked,
-        savedColors: JSON.parse(localStorage.getItem('savedColors') || '[]')
-      };
-      localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
-    }
-
-    function loadPageSettings() {
-      const pageKey = location.pathname;
-      const settings = JSON.parse(localStorage.getItem(`clockSettings-${pageKey}`));
-      if (settings) {
-        body.style.backgroundColor = settings.bgColor || 'transparent';
-        body.style.fontFamily = settings.fontFamily || 'sans-serif';
-        clock.style.fontSize = settings.fontSize || '20vw';
-        clock.style.color = settings.fontColor || '#333';
-        if (bgColorPicker) bgColorPicker.value = settings.bgColor || '#ffffff';
-        if (fontColorPicker) fontColorPicker.value = settings.fontColor || '#333';
-
-        toggleScrollbar.checked = !!settings.hideScrollbarPerm;
-        toggleAutoHide.checked = !!settings.autoHideControls;
-
-        if (toggleScrollbar.checked) {
-          body.classList.add('hide-scrollbar-perm');
-        } else {
-          body.classList.remove('hide-scrollbar-perm');
-        }
-
-        if (toggleAutoHide.checked) {
-          enableAutoHideControls();
-        } else {
-          disableAutoHideControls();
-          showControls(); // make sure controls visible if auto-hide off
-        }
-
-        if (settings.savedColors && Array.isArray(settings.savedColors)) {
-          localStorage.setItem('savedColors', JSON.stringify(settings.savedColors));
-          renderSavedColors();
-        } else {
-          renderSavedColors();
-        }
-      } else {
-        renderSavedColors();
-        showControls();
-      }
-    }
-
-    savePageSettingsBtn.addEventListener('click', () => {
-      savePageSettings();
-      alert('Saved settings for this page!');
-    });
-
-    // OTHER EVENTS
-    bgColorPicker.addEventListener('input', e => {
-      body.style.backgroundColor = e.target.value;
-      savePageSettings();
-    });
-
-    fontColorPicker.addEventListener('input', e => {
-      clock.style.color = e.target.value;
-      savePageSettings();
-    });
-
-    fontSizeRange.addEventListener('input', e => {
-      clock.style.fontSize = e.target.value + 'vw';
-      savePageSettings();
-    });
-
-    clearBGBtn.addEventListener('click', () => {
-      body.style.backgroundColor = 'transparent';
-      bgColorPicker.value = '#ffffff';
-      savePageSettings();
-    });
-
-    toggleScrollbar.addEventListener('change', () => {
-      if (toggleScrollbar.checked) {
-        body.classList.add('hide-scrollbar-perm');
-      } else {
-        body.classList.remove('hide-scrollbar-perm');
-      }
-      savePageSettings();
-    });
-
-    // AUTO-HIDE CONTROLS
-    let autoHideTimeout;
-    function hideControls() {
-      controlsPanel.classList.add('hidden');
-      hamburgerLines.classList.add('hidden');
-      if (!toggleScrollbar.checked) {
-        body.classList.add('hide-scrollbar-temp');
-      }
-    }
-    function showControls() {
-      controlsPanel.classList.remove('hidden');
-      hamburgerLines.classList.remove('hidden');
-      body.classList.remove('hide-scrollbar-temp');
-    }
-    function resetAutoHideTimer() {
+    } else {
+      renderSavedColors();
       showControls();
-      clearTimeout(autoHideTimeout);
-      autoHideTimeout = setTimeout(() => {
-        hideControls();
-      }, 3000);
     }
-    function enableAutoHideControls() {
-      resetAutoHideTimer();
-      window.addEventListener('mousemove', resetAutoHideTimer);
-    }
-    function disableAutoHideControls() {
-      clearTimeout(autoHideTimeout);
-      window.removeEventListener('mousemove', resetAutoHideTimer);
-    }
+  }
 
-    toggleAutoHide.addEventListener('change', () => {
-      if (toggleAutoHide.checked) {
-        enableAutoHideControls();
-      } else {
-        disableAutoHideControls();
-        showControls();
+  // Hamburger toggle controls visibility + scrollbar toggle
+  function toggleControls() {
+    if (controlsPanel.classList.contains('hidden')) {
+      showControls();
+    } else {
+      hideControls();
+    }
+  }
+  function showControls() {
+    controlsPanel.classList.remove('hidden');
+    hamburgerLines.classList.remove('hidden');
+    body.classList.remove('hide-scrollbar-temp');
+  }
+  function hideControls() {
+    controlsPanel.classList.add('hidden');
+    hamburgerLines.classList.add('hidden');
+    body.classList.add('hide-scrollbar-temp');
+  }
+
+  // Auto hide controls and hamburger after 3 seconds of inactivity
+  let hideTimeout;
+  function resetHideTimeout() {
+    showControls();
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      hideControls();
+    }, 3000);
+  }
+  document.addEventListener('mousemove', resetHideTimeout);
+  document.addEventListener('keydown', resetHideTimeout);
+
+  hamburgerLines.addEventListener('click', toggleControls);
+
+  // Event listeners for auto-save
+  bgColorPicker.addEventListener('input', e => {
+    body.style.backgroundColor = e.target.value;
+    savePageSettings();
+  });
+
+  fontColorPicker.addEventListener('input', e => {
+    clock.style.color = e.target.value;
+    savePageSettings();
+  });
+
+  fontSizeRange.addEventListener('input', e => {
+    clock.style.fontSize = e.target.value + 'vw';
+    savePageSettings();
+  });
+
+  fontSelect.addEventListener('change', e => {
+    fontInput.value = '';
+    updateFont(e.target.value);
+    savePageSettings();
+  });
+
+  fontInput.addEventListener('input', e => {
+    const val = e.target.value;
+    updateFont(val);
+    savePageSettings();
+    // autocomplete logic below
+    const matches = filterFonts(val);
+    showAutocomplete(matches);
+  });
+
+  fontInput.addEventListener('blur', () => {
+    setTimeout(() => (autocompleteList.style.display = 'none'), 200);
+  });
+
+  addFontBtn.addEventListener('click', () => {
+    const newFont = fontInput.value.trim() || addFontInput.value.trim();
+    if (!newFont) return alert('Enter a font name to add.');
+    if (!fonts.includes(newFont)) {
+      fonts.push(newFont);
+      const option = document.createElement('option');
+      option.value = newFont;
+      option.textContent = newFont;
+      fontSelect.appendChild(option);
+
+      const customFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+      if (!customFonts.includes(newFont)) {
+        customFonts.push(newFont);
+        localStorage.setItem('customFonts', JSON.stringify(customFonts));
       }
+      alert(`Added "${newFont}" to font list!`);
+      addFontInput.value = '';
       savePageSettings();
+    } else {
+      alert(`"${newFont}" is already in the font list.`);
+    }
+  });
+
+  saveCurrentColorBtn.addEventListener('click', () => {
+    addSavedColor(bgColorPicker.value);
+  });
+
+  clearBGBtn.addEventListener('click', () => {
+    body.style.backgroundColor = 'transparent';
+    bgColorPicker.value = '#ffffff';
+    savePageSettings();
+  });
+
+  // Fonts array for search and autocomplete
+  let fonts = Array.from(fontSelect.options).map(o => o.value);
+  const savedCustomFonts = JSON.parse(localStorage.getItem('customFonts') || '[]');
+  fonts = fonts.concat(savedCustomFonts);
+
+  // Filter fonts for autocomplete
+  function filterFonts(query) {
+    return fonts.filter(f => f.toLowerCase().includes(query.toLowerCase()));
+  }
+
+  // Show autocomplete suggestions
+  function showAutocomplete(matches) {
+    autocompleteList.innerHTML = '';
+    matches.forEach(match => {
+      const item = document.createElement('div');
+      item.textContent = match;
+      item.className = 'autocomplete-item';
+      item.addEventListener('mousedown', () => {
+        fontInput.value = match;
+        updateFont(match);
+        savePageSettings();
+        autocompleteList.style.display = 'none';
+      });
+      autocompleteList.appendChild(item);
     });
+    autocompleteList.style.display = matches.length ? 'block' : 'none';
+  }
 
-    // Initialize all
-    loadPageSettings();
+  // Initialize everything
+  loadPageSettings();
+  resetHideTimeout();
 
-  </script>
+</script>
+
 </body>
 </html>
