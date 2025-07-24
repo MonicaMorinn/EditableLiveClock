@@ -152,7 +152,7 @@
 
     <button id="savePageSettingsBtn">Save Settings for This Page</button>
 
-    <!-- New toggles -->
+    <!-- Keep toggle scrollbar and auto-hide controls -->
     <div style="width: 100%; margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
       <label for="toggleScrollbar" style="font-weight: 600; cursor: pointer;">
         <input type="checkbox" id="toggleScrollbar" />
@@ -163,10 +163,6 @@
         <input type="checkbox" id="toggleAutoHide" />
         Auto-hide Controls
       </label>
-
-      <button id="toggleNoBackgroundBtn" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #bbb; cursor: pointer; font-family: inherit;">
-        Toggle No Background Mode
-      </button>
     </div>
   </div>
 
@@ -191,7 +187,6 @@
 
     const toggleScrollbar = document.getElementById('toggleScrollbar');
     const toggleAutoHide = document.getElementById('toggleAutoHide');
-    const toggleNoBackgroundBtn = document.getElementById('toggleNoBackgroundBtn');
 
     // CLOCK
     function updateClock() {
@@ -209,7 +204,7 @@
     function addSavedColor(color) {
       let saved = JSON.parse(localStorage.getItem('savedColors') || '[]');
       if (!saved.includes(color)) {
-        if (saved.length >= 5) saved.shift();
+        if (saved.length >= 5) saved.shift(); // Remove oldest if 5 saved
         saved.push(color);
         localStorage.setItem('savedColors', JSON.stringify(saved));
         renderSavedColors();
@@ -318,7 +313,7 @@
         fontColor: clock.style.color,
         hideScrollbar: toggleScrollbar.checked,
         autoHideControls: toggleAutoHide.checked,
-        noBackgroundMode: body.classList.contains('no-background')
+        savedColors: JSON.parse(localStorage.getItem('savedColors') || '[]')
       };
       localStorage.setItem(`clockSettings-${pageKey}`, JSON.stringify(settings));
     }
@@ -350,13 +345,14 @@
           disableAutoHideControls();
         }
 
-        if (settings.noBackgroundMode) {
-          body.classList.add('no-background');
-          applyNoBackgroundMode(true);
+        if (settings.savedColors && Array.isArray(settings.savedColors)) {
+          localStorage.setItem('savedColors', JSON.stringify(settings.savedColors));
+          renderSavedColors();
         } else {
-          body.classList.remove('no-background');
-          applyNoBackgroundMode(false);
+          renderSavedColors();
         }
+      } else {
+        renderSavedColors();
       }
     }
 
@@ -429,31 +425,8 @@
       savePageSettings();
     });
 
-    // NO BACKGROUND MODE
-    function applyNoBackgroundMode(enabled) {
-      if (enabled) {
-        controlsPanel.style.display = 'none';
-        body.style.backgroundColor = 'transparent';
-        body.classList.add('hide-scrollbar');
-      } else {
-        controlsPanel.style.display = 'flex';
-        // Restore background color from picker if not transparent
-        body.style.backgroundColor = bgColorPicker.value || 'transparent';
-        if (!toggleScrollbar.checked) {
-          body.classList.remove('hide-scrollbar');
-        }
-      }
-    }
-
-    toggleNoBackgroundBtn.addEventListener('click', () => {
-      const enabled = body.classList.toggle('no-background');
-      applyNoBackgroundMode(enabled);
-      savePageSettings();
-    });
-
     // INIT
     loadPageSettings();
-    renderSavedColors();
   </script>
 </body>
 </html>
